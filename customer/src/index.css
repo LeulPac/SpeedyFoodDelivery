@@ -1,0 +1,107 @@
+@import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --color-brand: #f97316;
+  --color-brand-hover: #ea580c;
+  --color-brand-light: #fff7ed;
+  --color-brand-dark: #9a3412;
+
+  --bg-page: #F7F5F0;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #EFEBE3;
+  --bg-surface: #FFFFFF;
+  --bg-header: rgba(247, 245, 240, 0.95);
+
+  --text-main: #17191C;
+  --text-muted: #555A5F;
+  --text-subtle: #777C80;
+
+  --border-light: #DDD9D0;
+  --border-subtle: #EFEBE3;
+
+  --shadow-card: 0 4px 20px -2px rgba(23, 25, 28, 0.06), 0 2px 6px -1px rgba(23, 25, 28, 0.04);
+  --shadow-hover: 0 14px 30px -4px rgba(249, 115, 22, 0.12), 0 6px 12px -2px rgba(23, 25, 28, 0.06);
+  --shadow-modal: 0 25px 50px -12px rgba(23, 25, 28, 0.25);
+
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+html.dark {
+  --bg-page: #0F1318;
+  --bg-card: #1B222B;
+  --bg-subtle: #151A21;
+  --bg-surface: #222A34;
+  --bg-header: rgba(15, 19, 24, 0.95);
+
+  --text-main: #F3F1EA;
+  --text-muted: #C0BDB5;
+  --text-subtle: #92918C;
+
+  --border-light: #303945;
+  --border-subtle: #151A21;
+
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 14px 30px -4px rgba(249, 115, 22, 0.18), 0 6px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom smooth transitions */
+.transition-theme {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Card image zoom effect */
+.food-card-img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.group:hover .food-card-img {
+  transform: scale(1.05);
+}
+
+/* Line clamp helpers */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment files (keep .env.example safe)
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+error.log
+npm-debug.log*
+
+# Uploaded files (stored on Cloudinary in production)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

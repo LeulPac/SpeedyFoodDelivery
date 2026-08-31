@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --color-primary: #1a1d23;
+  --color-bg: #f7f7f8;
+  --color-surface: #ffffff;
+  --color-accent: #e8590c;
+  --color-text: #1a1d23;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-success: #16a34a;
+  --color-pending: #d97706;
+  --color-error: #dc2626;
+  --color-info: #2563eb;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--color-text); background-color: var(--color-bg); }
+#root { width: 100%; min-height: 100vh; }
+input, textarea, select { color: var(--color-text); background-color: var(--color-surface); font-family: inherit; }
+input::placeholder, textarea::placeholder { color: #9ca3af; }
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text);
+  box-shadow: 0 0 0 1000px var(--color-surface) inset;
+}
