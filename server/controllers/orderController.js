@@ -81,6 +81,7 @@ const createOrder = async (req, res) => {
       const clientOrigin = req.get('origin') || req.get('referer') || 'http://localhost:5173';
       const returnUrl = `${clientOrigin.replace(/\/$/, '')}/?verify_payment=${txRef}&order_id=${order.id}`;
 
+      const backendBase = process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
       const chapaResponse = await fetch('https://api.chapa.co/v1/transaction/initialize', {
         method: 'POST',
         headers: {
@@ -95,7 +96,7 @@ const createOrder = async (req, res) => {
           last_name: lastName,
           phone_number: phone || '0900000000',
           tx_ref: txRef,
-          callback_url: `http://localhost:5000/api/orders/chapa-webhook`,
+          callback_url: `${backendBase}/api/orders/chapa-webhook`,
           return_url: returnUrl,
           "customization[title]": "SpeedyDelivery Order",
           "customization[description]": `Payment for Order #${order.id}`
@@ -573,6 +574,7 @@ const retryChapaPayment = async (req, res) => {
     const clientOrigin = req.get('origin') || req.get('referer') || 'http://localhost:5173';
     const returnUrl = `${clientOrigin.replace(/\/$/, '')}/?verify_payment=${txRef}&order_id=${order.id}`;
 
+    const backendBase = process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
     const chapaKey = process.env.CHAPA_SECRET_KEY;
     const chapaResponse = await fetch('https://api.chapa.co/v1/transaction/initialize', {
       method: 'POST',
@@ -588,7 +590,7 @@ const retryChapaPayment = async (req, res) => {
         last_name: lastName,
         phone_number: order.customer_phone || '0900000000',
         tx_ref: txRef,
-        callback_url: `http://localhost:5000/api/orders/chapa-webhook`,
+        callback_url: `${backendBase}/api/orders/chapa-webhook`,
         return_url: returnUrl,
         "customization[title]": "SpeedyDelivery Order Retry",
         "customization[description]": `Payment retry for Order #${order.id}`
