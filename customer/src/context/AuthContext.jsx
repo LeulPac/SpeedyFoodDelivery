@@ -45,8 +45,12 @@ export const AuthProvider = ({ children }) => {
     checkUser();
   }, []);
 
-  const loginWithGoogle = async (credential) => {
-    const res = await api.post('/auth/google', { credential });
+  const loginWithGoogle = async (credentialOrToken) => {
+    const payload =
+      typeof credentialOrToken === 'string'
+        ? { credential: credentialOrToken }
+        : credentialOrToken;
+    const res = await api.post('/auth/google', payload);
     return applySession(setUser, res.data);
   };
 

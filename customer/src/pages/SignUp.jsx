@@ -100,7 +100,7 @@ export default function SignUp() {
     setError('');
     setFieldErrors({});
     try {
-      await loginWithGoogle(response.credential);
+      await loginWithGoogle(response.credential || response.access_token ? { accessToken: response.access_token, credential: response.credential } : response);
       navigate(from, { replace: true });
     } catch (err) {
       if (err.message === 'wrong_role') {

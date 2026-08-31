@@ -136,27 +136,46 @@ const login = async (req, res) => {
 const googleLogin = async (req, res) => {
   try {
     await ensureAuthSchema();
-    const { credential } = req.body;
-    if (!credential) {
-      return res.status(400).json({ error: 'Google credential is required.' });
+    const { credential, accessToken, access_token } = req.body;
+    const tokenToUse = accessToken || access_token;
+
+    if (!credential && !tokenToUse) {
+      return res.status(400).json({ error: 'Google credential or access token is required.' });
     }
 
-    const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
-    if (!clientId) {
-      return res.status(503).json({
-        error: 'Google sign-in is not configured on the server. Add GOOGLE_CLIENT_ID to server/.env and restart npm run dev.',
+    let googleId;
+    let email;
+    let name;
+
+    if (credential) {
+      const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+      if (!clientId) {
+        return res.status(503).json({
+          error: 'Google sign-in is not configured on the server. Add GOOGLE_CLIENT_ID to server/.env and restart npm run dev.',
+        });
+      }
+
+      const client = new OAuth2Client(clientId);
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: clientId,
       });
+      const payload = ticket.getPayload();
+      googleId = payload.sub;
+      email = payload.email?.toLowerCase();
+      name = payload.name || email?.split('@')[0] || 'Customer';
+    } else {
+      const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${tokenToUse}` },
+      });
+      if (!response.ok) {
+        return res.status(401).json({ error: 'Failed to retrieve Google user profile.' });
+      }
+      const data = await response.json();
+      googleId = data.sub;
+      email = data.email?.toLowerCase();
+      name = data.name || email?.split('@')[0] || 'Customer';
     }
-
-    const client = new OAuth2Client(clientId);
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: clientId,
-    });
-    const payload = ticket.getPayload();
-    const googleId = payload.sub;
-    const email = payload.email?.toLowerCase();
-    const name = payload.name || email?.split('@')[0] || 'Customer';
 
     if (!email) {
       return res.status(400).json({ error: 'Google account must share an email address.' });
