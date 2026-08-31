@@ -17,24 +17,25 @@ const server = http.createServer(app);
 const io = socketManager.init(server);
 
 // ---- CORS ----
-// In production, set ALLOWED_ORIGINS in Render env vars as a comma-separated list
-// of Vercel URLs, e.g.: https://customer.vercel.app,https://admin.vercel.app
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+const customOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean)
-  .concat([
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-  ]);
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true; // server-to-server or tools
+  if (customOrigins.includes('*') || customOrigins.includes(origin)) return true;
+  if (/^http:\/\/localhost:\d+$/i.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+};
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, Postman, server-to-server)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (isOriginAllowed(origin)) {
+        return callback(null, true);
+      }
       callback(new Error(`CORS blocked: ${origin}`));
     },
     credentials: true,

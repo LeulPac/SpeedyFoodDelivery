@@ -9,20 +9,23 @@ let _io = null;
 
 const init = (httpServer) => {
   const { Server } = require('socket.io');
-  // Reuse ALLOWED_ORIGINS from env for Socket.io CORS as well
-  const origins = (process.env.ALLOWED_ORIGINS || '')
+  
+  const customOrigins = (process.env.ALLOWED_ORIGINS || '')
     .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean)
-    .concat([
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-    ]);
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
   _io = new Server(httpServer, {
     cors: {
-      origin: origins.length > 0 ? origins : '*',
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (customOrigins.includes('*') || customOrigins.includes(origin)) return callback(null, true);
+        if (/^http:\/\/localhost:\d+$/i.test(origin)) return callback(null, true);
+        if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return callback(null, true);
+        return callback(new Error(`Socket CORS blocked: ${origin}`));
+      },
       methods: ['GET', 'POST'],
+      credentials: true,
     },
   });
   return _io;
