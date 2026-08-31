@@ -23,11 +23,12 @@ export default function GoogleSignIn({ onSuccess, onError }) {
         onSuccess={onSuccess}
         onError={onError}
         useOneTap={false}
-        theme="filled_blue"
+        theme="outline"
         size="large"
         text="continue_with"
         shape="rectangular"
         width="320"
+        logo_alignment="left"
       />
     </div>
   );
