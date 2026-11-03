@@ -26,6 +26,8 @@ export default function RegisterBusiness() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const ownerPortalUrl = import.meta.env.VITE_OWNER_PORTAL_URL || 'http://localhost:5174';
+
   const [step, setStep] = useState(1);
   const [plans, setPlans] = useState([]);
   const [selectedPlanId, setSelectedPlanId] = useState(2); // Professional default
@@ -174,7 +176,7 @@ export default function RegisterBusiness() {
               {isDark ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
             </button>
             <a
-              href="http://localhost:5174"
+              href={ownerPortalUrl}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-bold text-[var(--text-muted)] hover:text-[#FF6B00] px-3 py-2 rounded-xl border border-[var(--border-light)] transition hidden sm:inline-block"
@@ -247,12 +249,12 @@ export default function RegisterBusiness() {
 
                 <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
                   <a
-                    href="http://localhost:5174"
+                    href={ownerPortalUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs shadow-lg shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
                   >
-                    <span>Open Owner Console (port 5174)</span>
+                    <span>Open Owner Console</span>
                     <ArrowRight size={16} weight="bold" />
                   </a>
                   <Link

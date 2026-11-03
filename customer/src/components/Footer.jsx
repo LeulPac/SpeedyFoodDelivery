@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { MapPin, Heart, ArrowUp, Truck } from '@phosphor-icons/react';
 
 export default function Footer() {
+  const ownerPortalUrl = import.meta.env.VITE_OWNER_PORTAL_URL || 'http://localhost:5174';
+  const driverPortalUrl = import.meta.env.VITE_DRIVER_PORTAL_URL || 'http://localhost:5175';
   const year = new Date().getFullYear();
 
   const scrollToTop = () => {
@@ -38,7 +40,7 @@ export default function Footer() {
             <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-muted)]">
               <li><Link to="/register-business" className="hover:text-[#FF6B00] transition">Partner Registration</Link></li>
               <li><Link to="/register-business" className="hover:text-[#FF6B00] transition">Subscription Plans</Link></li>
-              <li><a href="http://localhost:5174" target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Owner Console Sign In</a></li>
+              <li><a href={ownerPortalUrl} target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Owner Console Sign In</a></li>
             </ul>
           </div>
 
@@ -49,9 +51,9 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm text-[var(--text-muted)]">
               <li><Link to="/login" className="hover:text-[#FF6B00] transition">Customer Sign In</Link></li>
-              <li><a href="http://localhost:5174" target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Business Owner Portal</a></li>
-              <li><a href="http://localhost:5175" target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Courier Driver Portal</a></li>
-              <li><a href="http://localhost:5174" target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Platform Administration</a></li>
+              <li><a href={ownerPortalUrl} target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Business Owner Portal</a></li>
+              <li><a href={driverPortalUrl} target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Courier Driver Portal</a></li>
+              <li><a href={ownerPortalUrl} target="_blank" rel="noreferrer" className="hover:text-[#FF6B00] transition">Platform Administration</a></li>
             </ul>
           </div>
 
