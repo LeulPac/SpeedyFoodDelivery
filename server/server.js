@@ -9,6 +9,9 @@ const authRoutes = require('./routes/authRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const businessRoutes = require('./routes/businessRoutes');
+const driverFeeRoutes = require('./routes/driverFeeRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +52,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/businesses', businessRoutes);
+app.use('/api/subscriptions', businessRoutes);
+app.use('/api/driver', driverFeeRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic health check
 app.get('/api/health', (req, res) => {

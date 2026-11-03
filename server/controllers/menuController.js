@@ -94,9 +94,21 @@ const getMenuCategories = async (_req, res) => {
 const getMenuItems = async (req, res) => {
   try {
     await ensureMenuSchema();
-    const result = await db.query(
-      'SELECT * FROM menu_items WHERE is_available = true ORDER BY category, name'
-    );
+    const { business_id } = req.query;
+    let query = `
+      SELECT mi.*, b.name AS business_name, b.business_type
+      FROM menu_items mi
+      LEFT JOIN businesses b ON mi.business_id = b.id
+      WHERE mi.is_available = true
+    `;
+    const params = [];
+    if (business_id) {
+      params.push(business_id);
+      query += ` AND mi.business_id = $1`;
+    }
+    query += ` ORDER BY mi.category, mi.name`;
+
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error('getMenuItems error:', err.message);
@@ -104,10 +116,23 @@ const getMenuItems = async (req, res) => {
   }
 };
 
-const getAllMenuItems = async (_req, res) => {
+const getAllMenuItems = async (req, res) => {
   try {
     await ensureMenuSchema();
-    const result = await db.query('SELECT * FROM menu_items ORDER BY category, name');
+    const bizId = req.user?.business_id;
+    let query = `
+      SELECT mi.*, b.name AS business_name, b.business_type
+      FROM menu_items mi
+      LEFT JOIN businesses b ON mi.business_id = b.id
+    `;
+    const params = [];
+    if (bizId && req.user?.role !== 'admin') {
+      params.push(bizId);
+      query += ` WHERE mi.business_id = $1`;
+    }
+    query += ` ORDER BY mi.category, mi.name`;
+
+    const result = await db.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error('getAllMenuItems error:', err.message);
@@ -118,10 +143,42 @@ const getAllMenuItems = async (_req, res) => {
 const createMenuItem = async (req, res) => {
   try {
     await ensureMenuSchema();
-    const { name, description, price, image_url, category } = req.body;
+    const { name, description, price, image_url, category, business_id } = req.body;
 
     if (!name || !price) {
       return res.status(400).json({ error: 'Name and price are required' });
+    }
+
+    let targetBusinessId = req.user?.business_id || business_id || null;
+    if (!targetBusinessId && req.user?.id) {
+      const bizRes = await db.query('SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1', [req.user.id]);
+      if (bizRes.rows.length > 0) {
+        targetBusinessId = bizRes.rows[0].id;
+      }
+    }
+    if (!targetBusinessId) {
+      const fallbackBiz = await db.query('SELECT id FROM businesses ORDER BY id ASC LIMIT 1');
+      targetBusinessId = fallbackBiz.rows[0]?.id || null;
+    }
+
+    // Check plan max menu items quota
+    if (targetBusinessId) {
+      const countRes = await db.query('SELECT COUNT(*) FROM menu_items WHERE business_id = $1', [targetBusinessId]);
+      const currentCount = parseInt(countRes.rows[0]?.count || 0);
+
+      const planRes = await db.query(`
+        SELECT sp.max_menu_items, sp.name AS plan_name
+        FROM businesses b
+        LEFT JOIN subscription_plans sp ON b.subscription_plan_id = sp.id
+        WHERE b.id = $1
+      `, [targetBusinessId]);
+
+      const maxAllowed = planRes.rows[0]?.max_menu_items || 25;
+      if (currentCount >= maxAllowed) {
+        return res.status(403).json({
+          error: `Your subscription plan limit (${maxAllowed} menu items) has been reached. Please upgrade your plan to add more items.`
+        });
+      }
     }
 
     // Upload files from memory buffer → Cloudinary or local disk
@@ -133,8 +190,8 @@ const createMenuItem = async (req, res) => {
     const finalImageUrl = imageUrls[0] || null;
 
     const result = await db.query(
-      'INSERT INTO menu_items (name, description, price, category, image_url, image_urls) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [name, description || '', price, normalizeCategory(category), finalImageUrl, imageUrls]
+      'INSERT INTO menu_items (name, description, price, category, image_url, image_urls, business_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [name, description || '', price, normalizeCategory(category), finalImageUrl, imageUrls, targetBusinessId]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -154,6 +211,12 @@ const updateMenuItem = async (req, res) => {
       return res.status(404).json({ error: 'Menu item not found' });
     }
     const existing = existingRes.rows[0];
+
+    // Data isolation check for owners
+    if (req.user?.role === 'owner' && req.user?.business_id && existing.business_id && existing.business_id !== req.user.business_id) {
+      return res.status(403).json({ error: 'Cannot modify menu items belonging to another business' });
+    }
+
     const existingImages = Array.isArray(existing.image_urls) ? existing.image_urls : [];
 
     const removeImages = Array.isArray(remove_images)
@@ -191,10 +254,19 @@ const deleteMenuItem = async (req, res) => {
   try {
     await ensureMenuSchema();
     const { id } = req.params;
-    const result = await db.query('DELETE FROM menu_items WHERE id = $1 RETURNING *', [id]);
-    if (result.rows.length === 0) {
+
+    const existingRes = await db.query('SELECT * FROM menu_items WHERE id = $1', [id]);
+    if (existingRes.rows.length === 0) {
       return res.status(404).json({ error: 'Menu item not found' });
     }
+    const existing = existingRes.rows[0];
+
+    // Data isolation check for owners
+    if (req.user?.role === 'owner' && req.user?.business_id && existing.business_id && existing.business_id !== req.user.business_id) {
+      return res.status(403).json({ error: 'Cannot delete menu items belonging to another business' });
+    }
+
+    await db.query('DELETE FROM menu_items WHERE id = $1', [id]);
     res.json({ success: true });
   } catch (err) {
     console.error('deleteMenuItem error:', err.message);

@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Users, CheckCircle, Copy, Pencil, Trash, X, Key, Phone } from '@phosphor-icons/react';
-
-const inputClass =
-  'w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-white placeholder-slate-500 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition text-sm';
-const labelClass = 'block text-xs text-slate-400 mb-1.5 uppercase tracking-wider font-semibold';
+import {
+  Users,
+  CheckCircle,
+  Copy,
+  Pencil,
+  Trash,
+  X,
+  Key,
+  Phone,
+  Truck,
+  ArrowsClockwise
+} from '@phosphor-icons/react';
 
 export default function DriverManagement() {
   const [drivers, setDrivers] = useState([]);
@@ -13,15 +20,19 @@ export default function DriverManagement() {
   const [driverNotice, setDriverNotice] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => { fetchDrivers(); }, []);
 
   const fetchDrivers = async () => {
     try {
+      setFetching(true);
       const res = await api.get('/orders/drivers');
       setDrivers(res.data);
     } catch (err) {
       console.error('Failed to load drivers', err);
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -34,7 +45,7 @@ export default function DriverManagement() {
       setDriverForm({ name: '', email: '', password: '', phone: '' });
       fetchDrivers();
       setDriverNotice({
-        title: 'New Driver Account Created!',
+        title: 'New Courier Account Created!',
         name,
         email,
         password,
@@ -70,334 +81,252 @@ export default function DriverManagement() {
       if (editingDriver.password && editingDriver.password.trim().length > 0) {
         payload.password = editingDriver.password.trim();
       }
-
       await api.put(`/auth/drivers/${editingDriver.id}`, payload);
-      
-      if (payload.password) {
-        setDriverNotice({
-          title: 'Driver Updated & Password Reset!',
-          name: editingDriver.name,
-          email: editingDriver.email,
-          phone: editingDriver.phone || 'Not Provided',
-          password: payload.password,
-        });
-      }
-
       setEditingDriver(null);
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Failed to update driver');
+      alert(err.response?.data?.error || 'Failed to update driver');
     } finally {
       setEditLoading(false);
     }
   };
 
-  const deleteDriver = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to remove driver "${name}"?`)) return;
+  const deleteDriver = async (driver) => {
+    if (!window.confirm(`Are you sure you want to delete courier "${driver.name}"?`)) return;
     try {
-      await api.delete(`/auth/drivers/${id}`);
-      if (editingDriver?.id === id) setEditingDriver(null);
+      await api.delete(`/auth/drivers/${driver.id}`);
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Failed to delete driver');
+      alert(err.response?.data?.error || 'Failed to delete driver');
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyCredentials = () => {
+    if (!driverNotice) return;
+    const text = `SpeedyDelivery Courier App (port 5175)\nUsername: ${driverNotice.email}\nPassword: ${driverNotice.password}`;
     navigator.clipboard.writeText(text);
+    alert('Courier login credentials copied to clipboard!');
   };
 
-  const freeDrivers = drivers.filter((d) => d.is_available);
-  const busyDrivers = drivers.filter((d) => !d.is_available);
-
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Users weight="fill" className="text-purple-400" size={28} />
-            Driver Management
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">Manage driver accounts, phone numbers, reset passwords, and monitor status</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="bg-green-600/20 text-green-300 border border-green-500/40 px-3 py-1.5 rounded-full text-xs font-semibold">
-            {freeDrivers.length} free
-          </span>
-          <span className="bg-orange-600/20 text-orange-300 border border-orange-500/40 px-3 py-1.5 rounded-full text-xs font-semibold">
-            {busyDrivers.length} busy
-          </span>
-        </div>
+    <div className="space-y-8 max-w-6xl">
+      <div>
+        <h1 className="text-2xl font-black text-[var(--text-main)] flex items-center gap-2 tracking-tight">
+          <Truck weight="fill" className="text-[#FF6B00]" size={28} />
+          Delivery Courier Team
+        </h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
+          Create & manage your business's dedicated delivery drivers
+        </p>
       </div>
 
-      {/* Credentials Banner */}
+      {/* Creation Notice Banner */}
       {driverNotice && (
-        <div className="mb-6 p-5 rounded-2xl border border-green-600/50 bg-green-950/40">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle size={20} weight="fill" className="text-green-400" />
-              <p className="text-green-300 font-semibold text-sm">{driverNotice.title}</p>
-            </div>
+        <div className="p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-sm flex items-center gap-2">
+              <CheckCircle size={20} weight="fill" />
+              {driverNotice.title}
+            </span>
             <button
               onClick={() => setDriverNotice(null)}
-              className="text-slate-400 hover:text-white transition"
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-main)]"
             >
-              <X size={18} />
+              Dismiss
             </button>
           </div>
-          <p className="text-slate-400 text-xs mb-3">Share these updated credentials with the driver:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {[
-              { label: 'Name', value: driverNotice.name },
-              { label: 'Phone', value: driverNotice.phone },
-              { label: 'Login Email', value: driverNotice.email },
-              { label: 'Password', value: driverNotice.password },
-              { label: 'Driver App URL', value: 'http://localhost:5175' },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between bg-slate-900/70 px-3.5 py-2.5 rounded-xl border border-slate-800">
-                <div className="min-w-0 pr-2">
-                  <span className="text-slate-500 text-xs">{label}: </span>
-                  <span className="text-slate-200 text-xs font-mono font-medium">{value}</span>
-                </div>
-                <button
-                  onClick={() => copyToClipboard(value)}
-                  className="text-slate-400 hover:text-white p-1 transition"
-                  title="Copy"
-                >
-                  <Copy size={14} />
-                </button>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono bg-[var(--bg-card)] p-3 rounded-xl border border-emerald-500/20 text-[var(--text-main)]">
+            <div>Username: <strong>{driverNotice.email}</strong></div>
+            <div>Password: <strong>{driverNotice.password}</strong></div>
+            <div>Phone: <strong>{driverNotice.phone}</strong></div>
           </div>
+          <button
+            onClick={copyCredentials}
+            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center gap-1.5"
+          >
+            <Copy size={14} />
+            <span>Copy Login Credentials</span>
+          </button>
         </div>
       )}
 
-      {/* Edit Driver Panel */}
-      {editingDriver && (
-        <div className="mb-6 bg-slate-800 border border-purple-500/50 rounded-2xl p-6 shadow-xl">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
-            <h2 className="text-white font-bold text-base flex items-center gap-2">
-              <Pencil size={18} className="text-purple-400" />
-              Edit Driver: {editingDriver.name}
-            </h2>
+      {/* Form: Add Driver */}
+      <div className="rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] p-8 shadow-sm space-y-4">
+        <h3 className="font-black text-lg text-[var(--text-main)]">Add New Delivery Courier</h3>
+        <form onSubmit={createDriver} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Courier Name *</label>
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={driverForm.name}
+              onChange={(e) => setDriverForm({ ...driverForm, name: e.target.value })}
+              required
+              className="w-full px-3.5 py-2 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Login Email *</label>
+            <input
+              type="email"
+              placeholder="driver@yourbusiness.com"
+              value={driverForm.email}
+              onChange={(e) => setDriverForm({ ...driverForm, email: e.target.value })}
+              required
+              className="w-full px-3.5 py-2 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Password (min 6) *</label>
+            <input
+              type="text"
+              placeholder="Temporary password"
+              value={driverForm.password}
+              onChange={(e) => setDriverForm({ ...driverForm, password: e.target.value })}
+              required
+              className="w-full px-3.5 py-2 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase">Phone Number</label>
+            <input
+              type="tel"
+              placeholder="0911223344"
+              value={driverForm.phone}
+              onChange={(e) => setDriverForm({ ...driverForm, phone: e.target.value })}
+              className="w-full px-3.5 py-2 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+            />
+          </div>
+
+          <div className="sm:col-span-2 lg:col-span-4 flex justify-end pt-2">
             <button
-              onClick={() => setEditingDriver(null)}
-              className="text-slate-400 hover:text-white transition"
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2.5 rounded-xl bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold transition shadow"
             >
+              {loading ? 'Creating...' : 'Register Courier'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Edit Driver Modal */}
+      {editingDriver && (
+        <div className="p-6 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] shadow-xl space-y-4">
+          <div className="flex justify-between items-center border-b border-[var(--border-light)] pb-3">
+            <h3 className="font-black text-base text-[var(--text-main)]">Edit Courier: {editingDriver.name}</h3>
+            <button onClick={() => setEditingDriver(null)}>
               <X size={20} />
             </button>
           </div>
-
-          <form onSubmit={saveEditDriver} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className={labelClass}>Display Name</label>
-                <input
-                  required
-                  value={editingDriver.name}
-                  onChange={(e) => setEditingDriver({ ...editingDriver, name: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Login Email</label>
-                <input
-                  type="email"
-                  required
-                  value={editingDriver.email}
-                  onChange={(e) => setEditingDriver({ ...editingDriver, email: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="e.g. 0911223344"
-                  value={editingDriver.phone}
-                  onChange={(e) => setEditingDriver({ ...editingDriver, phone: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className={labelClass}>
-                <span className="flex items-center gap-1.5 text-purple-300">
-                  <Key size={14} />
-                  Reset Password (Optional)
-                </span>
-              </label>
+          <form onSubmit={saveEditDriver} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="space-y-1">
+              <label className="font-bold text-[var(--text-muted)] uppercase">Name</label>
               <input
-                type="password"
-                placeholder="Leave blank to keep existing password, or enter new password (6+ chars)"
-                minLength={6}
-                value={editingDriver.password}
-                onChange={(e) => setEditingDriver({ ...editingDriver, password: e.target.value })}
-                className={inputClass}
+                type="text"
+                value={editingDriver.name}
+                onChange={(e) => setEditingDriver({ ...editingDriver, name: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
               />
-              <p className="text-xs text-slate-500 mt-1">
-                If the driver forgot their password, type a new password here to reset their access.
-              </p>
             </div>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={editLoading}
-                className="flex-1 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-900 text-white py-2.5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
-              >
-                {editLoading ? 'Saving...' : 'Save Driver Changes'}
-              </button>
+            <div className="space-y-1">
+              <label className="font-bold text-[var(--text-muted)] uppercase">Email</label>
+              <input
+                type="email"
+                value={editingDriver.email}
+                onChange={(e) => setEditingDriver({ ...editingDriver, email: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-[var(--text-muted)] uppercase">Phone</label>
+              <input
+                type="tel"
+                value={editingDriver.phone}
+                onChange={(e) => setEditingDriver({ ...editingDriver, phone: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+              />
+            </div>
+            <div className="sm:col-span-3 flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setEditingDriver(null)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 rounded-xl text-sm font-semibold transition"
+                className="px-4 py-1.5 rounded-xl border border-[var(--border-light)] text-xs font-bold text-[var(--text-muted)]"
               >
                 Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editLoading}
+                className="px-5 py-1.5 rounded-xl bg-[#FF6B00] text-white text-xs font-bold"
+              >
+                {editLoading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      {/* Drivers List */}
+      <div className="rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] overflow-hidden shadow-sm">
+        <div className="p-5 border-b border-[var(--border-light)] flex justify-between items-center">
+          <h3 className="font-black text-base text-[var(--text-main)]">Active Delivery Team ({drivers.length})</h3>
+        </div>
 
-        {/* Driver list */}
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-          <h2 className="text-white font-bold mb-4 text-base">All Drivers ({drivers.length})</h2>
-          {drivers.length === 0 ? (
-            <div className="text-center py-10">
-              <Users size={40} className="mx-auto text-slate-600 mb-3" />
-              <p className="text-slate-400 text-sm">No drivers yet — create one below</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {drivers.map((driver) => (
-                <div
-                  key={driver.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900/60 p-4 rounded-xl border transition
-                    ${editingDriver?.id === driver.id ? 'border-purple-500' : 'border-slate-700 hover:border-slate-600'}`}
-                >
-                  <div className="min-w-0 mb-3 sm:mb-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-white font-semibold text-sm truncate">{driver.name}</p>
-                      <span
-                        className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
-                          driver.is_available
-                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                            : 'bg-orange-600/20 text-orange-400 border border-orange-500/30'
-                        }`}
-                      >
-                        {driver.is_available ? 'FREE' : `BUSY #${driver.active_order_id}`}
-                      </span>
-                    </div>
-                    <p className="text-slate-400 text-xs truncate mt-0.5">{driver.email}</p>
-                    <p className="text-purple-400 text-xs font-mono mt-0.5 flex items-center gap-1">
-                      <Phone size={12} /> {driver.phone || 'Phone Not Set'}
-                    </p>
+        {fetching ? (
+          <div className="p-12 text-center text-[var(--text-muted)]">
+            <ArrowsClockwise size={28} className="animate-spin mx-auto" />
+          </div>
+        ) : drivers.length === 0 ? (
+          <div className="p-12 text-center text-[var(--text-muted)] space-y-1">
+            <p className="font-bold text-[var(--text-main)]">No couriers registered yet</p>
+            <p className="text-xs">Add your delivery drivers using the form above.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--border-light)]">
+            {drivers.map((d) => (
+              <div key={d.id} className="p-5 flex items-center justify-between gap-4 hover:bg-[var(--bg-page)]/40 transition">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm text-[var(--text-main)]">{d.name}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        d.is_available
+                          ? 'bg-emerald-500/10 text-emerald-500'
+                          : 'bg-blue-500/10 text-blue-500'
+                      }`}
+                    >
+                      {d.is_available ? 'Available' : 'Delivering Order'}
+                    </span>
                   </div>
-
-                  <div className="flex items-center gap-2 self-end sm:self-auto">
-                    <button
-                      onClick={() => startEditDriver(driver)}
-                      className="flex items-center gap-1 text-xs px-3 py-1.5 bg-purple-600/20 text-purple-300 hover:bg-purple-600 hover:text-white rounded-lg border border-purple-600/40 transition font-semibold"
-                      title="Edit name, email, phone or reset password"
-                    >
-                      <Pencil size={13} /> Edit / Reset PW
-                    </button>
-                    <button
-                      onClick={() => deleteDriver(driver.id, driver.name)}
-                      className="p-1.5 bg-red-600/20 text-red-300 hover:bg-red-600 hover:text-white rounded-lg border border-red-600/40 transition"
-                      title="Delete driver"
-                    >
-                      <Trash size={14} />
-                    </button>
+                  <div className="text-xs text-[var(--text-muted)] flex items-center gap-3">
+                    <span>{d.email}</span>
+                    {d.phone && <span>• {d.phone}</span>}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Create driver form */}
-        <div>
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-            <h2 className="text-white font-bold mb-1 text-base">Create Driver Account</h2>
-            <p className="text-slate-400 text-xs mb-5">
-              Drivers sign in at{' '}
-              <span className="text-cyan-400 font-mono">localhost:5175</span> using the email and password you set.
-            </p>
-
-            <form onSubmit={createDriver} className="space-y-4">
-              <div>
-                <label className={labelClass}>Display Name</label>
-                <input
-                  placeholder="e.g. John Smith"
-                  required
-                  value={driverForm.name}
-                  onChange={(e) => setDriverForm({ ...driverForm, name: e.target.value })}
-                  className={inputClass}
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => startEditDriver(d)}
+                    className="p-2 rounded-xl border border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[#FF6B00] transition"
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    onClick={() => deleteDriver(d)}
+                    className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition"
+                  >
+                    <Trash size={15} />
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className={labelClass}>Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="e.g. 0911223344"
-                  value={driverForm.phone}
-                  onChange={(e) => setDriverForm({ ...driverForm, phone: e.target.value })}
-                  className={inputClass}
-                />
-                <p className="text-xs text-slate-500 mt-1.5">Displayed to admin on active order delivery cards</p>
-              </div>
-              <div>
-                <label className={labelClass}>Username (Login Email)</label>
-                <input
-                  type="email"
-                  placeholder="e.g. john@delivery.com"
-                  required
-                  value={driverForm.email}
-                  onChange={(e) => setDriverForm({ ...driverForm, email: e.target.value })}
-                  className={inputClass}
-                />
-                <p className="text-xs text-slate-500 mt-1.5">This is what the driver types to sign in</p>
-              </div>
-              <div>
-                <label className={labelClass}>Password</label>
-                <input
-                  type="password"
-                  placeholder="Set a secure password (6+ chars)"
-                  required
-                  minLength={6}
-                  value={driverForm.password}
-                  onChange={(e) => setDriverForm({ ...driverForm, password: e.target.value })}
-                  className={inputClass}
-                />
-                <p className="text-xs text-slate-500 mt-1.5">You can always reset or edit this later if forgotten.</p>
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-purple-600 hover:bg-purple-500 disabled:bg-purple-900 disabled:text-purple-600 text-white font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Users weight="bold" /> Create Driver Login
-                  </>
-                )}
-              </button>
-            </form>
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
-

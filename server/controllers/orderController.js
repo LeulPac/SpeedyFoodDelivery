@@ -51,12 +51,20 @@ const createOrder = async (req, res) => {
 
     let txRef = `speedy-${Date.now()}-${customer_id}-${Math.floor(Math.random() * 1000)}`;
 
+    let businessId = req.body.business_id ? parseInt(req.body.business_id) : null;
+    if (!businessId && Array.isArray(items) && items.length > 0 && items[0].menu_item_id) {
+      const bizRes = await db.query('SELECT business_id FROM menu_items WHERE id = $1', [items[0].menu_item_id]);
+      if (bizRes.rows.length > 0 && bizRes.rows[0].business_id) {
+        businessId = bizRes.rows[0].business_id;
+      }
+    }
+
     // 1. Create order
     const orderResult = await db.query(
       `INSERT INTO orders (
-        customer_id, total_amount, status, payment_status, payment_method, payment_reference, customer_phone, customer_latitude, customer_longitude, customer_location_updated_at
-      ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7::double precision, $8::double precision, CASE WHEN $7::double precision IS NOT NULL AND $8::double precision IS NOT NULL THEN NOW() ELSE NULL END) RETURNING *`,
-      [customer_id, total_amount, initialPaymentStatus, method, txRef, phone, lat, lng]
+        customer_id, total_amount, status, payment_status, payment_method, payment_reference, customer_phone, customer_latitude, customer_longitude, customer_location_updated_at, business_id
+      ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7::double precision, $8::double precision, CASE WHEN $7::double precision IS NOT NULL AND $8::double precision IS NOT NULL THEN NOW() ELSE NULL END, $9) RETURNING *`,
+      [customer_id, total_amount, initialPaymentStatus, method, txRef, phone, lat, lng, businessId]
     );
     const order = orderResult.rows[0];
 
@@ -192,7 +200,7 @@ const verifyChapaPayment = async (req, res) => {
   }
 };
 
-// Owner views all active orders, Driver views ready orders, Customer views their own
+// Owner views all active orders for their business, Driver views ready orders, Customer views their own
 const getOrders = async (req, res) => {
     try {
         await ensureOrderColumns();
@@ -206,6 +214,10 @@ const getOrders = async (req, res) => {
             u_driver.name AS driver_name,
             u_driver.email AS driver_email,
             u_driver.phone AS driver_phone,
+            b.name AS business_name,
+            b.business_type,
+            b.logo_url AS business_logo,
+            b.address AS business_address,
             COALESCE(
               json_agg(
                 json_build_object(
@@ -220,18 +232,26 @@ const getOrders = async (req, res) => {
           FROM orders o
           LEFT JOIN users u_cust ON o.customer_id = u_cust.id
           LEFT JOIN users u_driver ON o.driver_id = u_driver.id
+          LEFT JOIN businesses b ON o.business_id = b.id
           LEFT JOIN order_items oi ON oi.order_id = o.id
           LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
         `;
         let params = [];
 
         if (role === 'customer') {
-            query += ' WHERE o.customer_id = $1 GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone ORDER BY o.created_at DESC';
+            query += ' WHERE o.customer_id = $1 GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone, b.name, b.business_type, b.logo_url, b.address ORDER BY o.created_at DESC';
             params = [req.user.id];
         } else if (role === 'owner') {
-            query += " WHERE o.status != 'delivered' AND o.payment_status = 'paid' GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone ORDER BY o.created_at DESC";
+            if (req.user.business_id) {
+              query += " WHERE o.status != 'delivered' AND o.payment_status = 'paid' AND (o.business_id = $1 OR o.business_id IS NULL) GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone, b.name, b.business_type, b.logo_url, b.address ORDER BY o.created_at DESC";
+              params = [req.user.business_id];
+            } else {
+              query += " WHERE o.status != 'delivered' AND o.payment_status = 'paid' GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone, b.name, b.business_type, b.logo_url, b.address ORDER BY o.created_at DESC";
+            }
+        } else if (role === 'admin') {
+            query += " WHERE o.status != 'delivered' AND o.payment_status = 'paid' GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone, b.name, b.business_type, b.logo_url, b.address ORDER BY o.created_at DESC";
         } else if (role === 'driver') {
-            query += " WHERE (o.status = 'ready_for_pickup' OR o.driver_id = $1) AND o.payment_status = 'paid' GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone ORDER BY o.created_at DESC";
+            query += " WHERE (o.status = 'ready_for_pickup' OR o.driver_id = $1) AND o.payment_status = 'paid' GROUP BY o.id, u_cust.name, u_cust.email, u_cust.phone, u_driver.name, u_driver.email, u_driver.phone, b.name, b.business_type, b.logo_url, b.address ORDER BY o.created_at DESC";
             params = [req.user.id];
         }
 
@@ -243,10 +263,11 @@ const getOrders = async (req, res) => {
     }
 };
 
-const getDriverStatuses = async (_req, res) => {
+const getDriverStatuses = async (req, res) => {
   try {
     await ensureOrderColumns();
-    const result = await db.query(`
+    const bizId = req.user?.business_id;
+    let query = `
       SELECT
         u.id,
         u.name,
@@ -259,8 +280,15 @@ const getDriverStatuses = async (_req, res) => {
         ON o.driver_id = u.id
         AND o.status IN ('ready_for_pickup', 'delivering')
       WHERE u.role = 'driver'
-      ORDER BY u.name ASC;
-    `);
+    `;
+    const params = [];
+    if (bizId && req.user?.role !== 'admin') {
+      params.push(bizId);
+      query += ` AND (u.business_id = $1 OR u.business_id IS NULL)`;
+    }
+    query += ` ORDER BY u.name ASC;`;
+
+    const result = await db.query(query, params);
 
     const drivers = result.rows.map((row) => ({
       id: row.id,
@@ -351,6 +379,23 @@ const updateOrderStatus = async (req, res) => {
           [nextStatus, nextDriverId, nextCustomerConfirmed, nextDriverConfirmed, id]
         );
         const updatedOrder = result.rows[0];
+
+        // When order is confirmed as delivered, record the fixed driver platform fee
+        if (updatedOrder.status === 'delivered' && updatedOrder.driver_id) {
+          try {
+            const settingsRes = await db.query('SELECT driver_fee_per_delivery FROM platform_settings LIMIT 1');
+            const feeAmount = parseFloat(settingsRes.rows[0]?.driver_fee_per_delivery || 25.00);
+
+            await db.query(
+              `INSERT INTO driver_delivery_fees (driver_id, order_id, business_id, fee_amount, status)
+               VALUES ($1, $2, $3, $4, 'unpaid')
+               ON CONFLICT (order_id) DO NOTHING`,
+              [updatedOrder.driver_id, updatedOrder.id, updatedOrder.business_id, feeAmount]
+            );
+          } catch (feeErr) {
+            console.error('Failed to record driver delivery fee on delivery completion:', feeErr.message);
+          }
+        }
 
         try {
           socketManager.getIo().emit('order_status_update', {

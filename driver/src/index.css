@@ -1,33 +1,55 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+@variant dark (&:where(.dark, .dark *));
 
 :root {
-  --color-primary: #1a1d23;
-  --color-bg: #f7f7f8;
-  --color-surface: #ffffff;
-  --color-accent: #e8590c;
-  --color-text: #1a1d23;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
-  --color-success: #16a34a;
-  --color-pending: #d97706;
-  --color-error: #dc2626;
-  --color-info: #2563eb;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --color-brand: #FF6B00;
+  --color-brand-hover: #E05E00;
 
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 400;
-  text-rendering: optimizeLegibility;
+  --bg-page: #F7F7F4;
+  --bg-card: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F0EFEB;
+
+  --text-main: #0B0F14;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
+
+  --border-light: #E2E8F0;
+  --border-subtle: #EDEDE8;
+
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html.dark {
+  --bg-page: #0B0F14;
+  --bg-card: #151C28;
+  --bg-surface: #1B2433;
+  --bg-subtle: #111722;
+
+  --text-main: #F7F7F4;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
+
+  --border-light: #222E3F;
+  --border-subtle: #192231;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: background-color 0.25s ease, color 0.25s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--color-text); background-color: var(--color-bg); }
-#root { width: 100%; min-height: 100vh; }
-input, textarea, select { color: var(--color-text); background-color: var(--color-surface); font-family: inherit; }
-input::placeholder, textarea::placeholder { color: #9ca3af; }
-input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--color-text);
-  box-shadow: 0 0 0 1000px var(--color-surface) inset;
+#root { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+
+.transition-theme {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 }

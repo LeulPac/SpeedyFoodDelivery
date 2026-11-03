@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
           sessionStorage.setItem('token', token);
           localStorage.removeItem('token');
           const res = await api.get('/auth/me');
-          if (res.data.role === 'owner') {
+          if (res.data.role === 'owner' || res.data.role === 'admin') {
             setUser(res.data);
           } else {
             sessionStorage.removeItem('token');
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    if (res.data.user.role !== 'owner') {
+    if (res.data.user.role !== 'owner' && res.data.user.role !== 'admin') {
       const err = new Error('wrong_role');
       err.role = res.data.user.role;
       throw err;

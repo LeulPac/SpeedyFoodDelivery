@@ -17,7 +17,7 @@ const ensureAuthSchema = async () => {
 
 const signToken = (user) =>
   jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
+    { id: user.id, email: user.email, role: user.role, business_id: user.business_id || null },
     process.env.JWT_SECRET,
     { expiresIn: '24h' }
   );
@@ -28,6 +28,7 @@ const publicUser = (row) => ({
   email: row.email,
   phone: row.phone || null,
   role: row.role,
+  business_id: row.business_id || null,
 });
 
 const register = async (req, res) => {
@@ -89,9 +90,10 @@ const registerDriver = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    const bizId = req.user?.business_id || null;
     const created = await db.query(
-      'INSERT INTO users (name, email, password_hash, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, role',
-      [String(name).trim(), trimmedEmail, passwordHash, phone ? String(phone).trim() : null, 'driver']
+      'INSERT INTO users (name, email, password_hash, phone, role, business_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, phone, role, business_id',
+      [String(name).trim(), trimmedEmail, passwordHash, phone ? String(phone).trim() : null, 'driver', bizId]
     );
     res.status(201).json(publicUser(created.rows[0]));
   } catch (err) {
@@ -123,6 +125,14 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid email or password.' });
+    }
+
+    if (user.role === 'owner' && !user.business_id) {
+      const bizRes = await db.query('SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
+      if (bizRes.rows.length > 0) {
+        user.business_id = bizRes.rows[0].id;
+        await db.query('UPDATE users SET business_id = $1 WHERE id = $2', [user.business_id, user.id]);
+      }
     }
 
     const token = signToken(user);
@@ -296,11 +306,18 @@ const deleteDriver = async (req, res) => {
 
 const me = async (req, res) => {
   try {
-    const userResult = await db.query('SELECT id, name, email, phone, role FROM users WHERE id = $1', [req.user.id]);
+    const userResult = await db.query('SELECT id, name, email, phone, role, business_id FROM users WHERE id = $1', [req.user.id]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(publicUser(userResult.rows[0]));
+    const user = userResult.rows[0];
+    if (user.role === 'owner' && !user.business_id) {
+      const bizRes = await db.query('SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
+      if (bizRes.rows.length > 0) {
+        user.business_id = bizRes.rows[0].id;
+      }
+    }
+    res.json(publicUser(user));
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

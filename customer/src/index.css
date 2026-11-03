@@ -1,52 +1,50 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 @variant dark (&:where(.dark, .dark *));
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
-  --color-brand: #f97316;
-  --color-brand-hover: #ea580c;
-  --color-brand-light: #fff7ed;
-  --color-brand-dark: #9a3412;
+  --color-brand: #FF6B00;
+  --color-brand-hover: #E05E00;
+  --color-brand-light: #FFF4EB;
+  --color-brand-dark: #C85400;
 
-  --bg-page: #F7F5F0;
+  --bg-page: #F7F7F4;
   --bg-card: #FFFFFF;
-  --bg-subtle: #EFEBE3;
   --bg-surface: #FFFFFF;
-  --bg-header: rgba(247, 245, 240, 0.95);
+  --bg-subtle: #F0EFEB;
+  --bg-header: rgba(247, 247, 244, 0.95);
 
-  --text-main: #17191C;
-  --text-muted: #555A5F;
-  --text-subtle: #777C80;
+  --text-main: #0B0F14;
+  --text-muted: #64748B;
+  --text-subtle: #94A3B8;
 
-  --border-light: #DDD9D0;
-  --border-subtle: #EFEBE3;
+  --border-light: #E2E8F0;
+  --border-subtle: #EDEDE8;
 
-  --shadow-card: 0 4px 20px -2px rgba(23, 25, 28, 0.06), 0 2px 6px -1px rgba(23, 25, 28, 0.04);
-  --shadow-hover: 0 14px 30px -4px rgba(249, 115, 22, 0.12), 0 6px 12px -2px rgba(23, 25, 28, 0.06);
-  --shadow-modal: 0 25px 50px -12px rgba(23, 25, 28, 0.25);
+  --shadow-card: 0 4px 20px -2px rgba(11, 15, 20, 0.05), 0 2px 6px -1px rgba(11, 15, 20, 0.03);
+  --shadow-hover: 0 16px 32px -4px rgba(255, 107, 0, 0.12), 0 4px 12px -2px rgba(11, 15, 20, 0.05);
+  --shadow-modal: 0 25px 50px -12px rgba(11, 15, 20, 0.25);
 
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 html.dark {
-  --bg-page: #0F1318;
-  --bg-card: #1B222B;
-  --bg-subtle: #151A21;
-  --bg-surface: #222A34;
-  --bg-header: rgba(15, 19, 24, 0.95);
+  --bg-page: #0B0F14;
+  --bg-card: #151C28;
+  --bg-surface: #1B2433;
+  --bg-subtle: #111722;
+  --bg-header: rgba(11, 15, 20, 0.95);
 
-  --text-main: #F3F1EA;
-  --text-muted: #C0BDB5;
-  --text-subtle: #92918C;
+  --text-main: #F7F7F4;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
 
-  --border-light: #303945;
-  --border-subtle: #151A21;
+  --border-light: #222E3F;
+  --border-subtle: #192231;
 
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
-  --shadow-hover: 0 14px 30px -4px rgba(249, 115, 22, 0.18), 0 6px 12px -2px rgba(0, 0, 0, 0.4);
-  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  --shadow-hover: 0 16px 32px -4px rgba(255, 107, 0, 0.18), 0 6px 16px -2px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
 }
 
 * {
@@ -79,12 +77,10 @@ body {
   scrollbar-width: none;
 }
 
-/* Custom smooth transitions */
 .transition-theme {
   transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Card image zoom effect */
 .food-card-img {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -92,7 +88,6 @@ body {
   transform: scale(1.05);
 }
 
-/* Line clamp helpers */
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
