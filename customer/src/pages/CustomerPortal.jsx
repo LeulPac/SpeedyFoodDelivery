@@ -426,19 +426,20 @@ export default function CustomerPortal() {
       {/* ============================================================== */}
       {/* 1. TOP NAVIGATION BAR                                          */}
       {/* ============================================================== */}
-      <header className="sticky top-0 z-40 bg-[var(--bg-card)]/90 backdrop-blur-md border-b border-[var(--border-light)] transition-theme">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-md border-b border-[var(--border-light)] transition-theme">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-18 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Logo */}
-          <div className="flex items-center gap-3">
-            <Link to="/" onClick={() => setSelectedBusiness(null)} className="flex items-center gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF6B00] to-[#FF8C33] flex items-center justify-center text-white shadow-md shadow-[#FF6B00]/25 group-hover:scale-105 transition">
-                <Truck size={24} weight="fill" />
+          <div className="flex items-center gap-2">
+            <Link to="/" onClick={() => setSelectedBusiness(null)} className="flex items-center gap-2 group shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#FF6B00] to-[#FF8C33] flex items-center justify-center text-white shadow-md shadow-[#FF6B00]/25 group-hover:scale-105 transition">
+                <Truck size={20} className="sm:hidden" weight="fill" />
+                <Truck size={24} className="hidden sm:block" weight="fill" />
               </div>
               <div className="flex flex-col">
-                <span className="font-extrabold text-xl tracking-tight leading-none text-[var(--text-main)]">
+                <span className="font-extrabold text-base sm:text-xl tracking-tight leading-none text-[var(--text-main)]">
                   Speedy<span className="text-[#FF6B00]">Delivery</span>
                 </span>
-                <span className="text-[10px] tracking-wider font-semibold text-[var(--text-muted)] uppercase mt-0.5">
+                <span className="text-[9px] sm:text-[10px] tracking-wider font-semibold text-[var(--text-muted)] uppercase hidden xs:block mt-0.5">
                   Multi-Business Hub
                 </span>
               </div>
@@ -446,15 +447,15 @@ export default function CustomerPortal() {
 
             {/* Breadcrumb if a business is selected */}
             {selectedBusiness && (
-              <div className="hidden md:flex items-center gap-2 pl-3 ml-3 border-l border-[var(--border-light)] text-sm">
+              <div className="hidden sm:flex items-center gap-1.5 pl-2 ml-2 border-l border-[var(--border-light)] text-xs">
                 <button
                   onClick={() => setSelectedBusiness(null)}
                   className="text-[var(--text-muted)] hover:text-[#FF6B00] transition font-medium"
                 >
                   Businesses
                 </button>
-                <CaretRight size={14} className="text-[var(--text-muted)]" />
-                <span className="font-semibold text-[var(--text-main)]">{selectedBusiness.name}</span>
+                <CaretRight size={12} className="text-[var(--text-muted)]" />
+                <span className="font-semibold text-[var(--text-main)] truncate max-w-[120px]">{selectedBusiness.name}</span>
               </div>
             )}
           </div>
@@ -485,39 +486,39 @@ export default function CustomerPortal() {
           </div>
 
           {/* Actions & Utilities */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle Dark/Light Mode"
-              className="p-2.5 rounded-xl border border-[var(--border-light)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[#FF6B00] hover:border-[#FF6B00]/40 transition shadow-sm"
+              className="p-2 sm:p-2.5 rounded-xl border border-[var(--border-light)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[#FF6B00] transition shadow-sm"
             >
-              {isDark ? <Sun size={20} weight="bold" /> : <Moon size={20} weight="bold" />}
+              {isDark ? <Sun size={17} weight="bold" /> : <Moon size={17} weight="bold" />}
             </button>
 
-            {/* Register Business CTA */}
+            {/* Register Business CTA (Desktop/tablet) */}
             <button
               onClick={() => navigate('/register-business')}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl border border-[#FF6B00]/30 text-[#FF6B00] bg-[#FF6B00]/5 hover:bg-[#FF6B00] hover:text-white transition shadow-sm"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 sm:py-2 text-xs font-bold rounded-xl border border-[#FF6B00]/30 text-[#FF6B00] bg-[#FF6B00]/5 hover:bg-[#FF6B00] hover:text-white transition shadow-sm"
             >
-              <Storefront size={16} weight="bold" />
-              <span>Partner With Us</span>
+              <Storefront size={15} weight="bold" />
+              <span>Partner</span>
             </button>
 
             {/* Active / Past Orders button */}
             {user && (
               <button
                 onClick={() => setShowOrderHistory(!showOrderHistory)}
-                className={`relative flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl border transition ${
+                className={`relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-semibold rounded-xl border transition ${
                   showOrderHistory || activeOrder
                     ? 'border-[#FF6B00] bg-[#FF6B00]/10 text-[#FF6B00]'
                     : 'border-[var(--border-light)] bg-[var(--bg-card)] text-[var(--text-main)] hover:border-[#FF6B00]/50'
                 }`}
               >
-                <Package size={18} weight="bold" />
+                <Package size={17} weight="bold" />
                 <span className="hidden md:inline">My Orders</span>
                 {activeOrder && (
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B00] animate-ping ml-1" />
+                  <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-ping" />
                 )}
               </button>
             )}
@@ -525,12 +526,12 @@ export default function CustomerPortal() {
             {/* Shopping Cart Button */}
             <button
               onClick={() => setCartOpen(true)}
-              className="relative flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-sm shadow-md shadow-[#FF6B00]/25 transition hover:scale-[1.02] active:scale-[0.98]"
+              className="relative flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#FF6B00]/25 transition active:scale-95"
             >
-              <ShoppingCart size={20} weight="bold" />
+              <ShoppingCart size={17} weight="bold" />
               <span className="hidden sm:inline">Cart</span>
               {cart.length > 0 && (
-                <span className="px-1.5 py-0.5 text-xs bg-white text-[#FF6B00] font-black rounded-full">
+                <span className="px-1.5 py-0.2 text-[10px] sm:text-xs bg-white text-[#FF6B00] font-black rounded-full">
                   {cart.reduce((s, i) => s + i.quantity, 0)}
                 </span>
               )}
@@ -538,7 +539,7 @@ export default function CustomerPortal() {
 
             {/* User Account / Auth */}
             {user ? (
-              <div className="flex items-center gap-2 pl-2 border-l border-[var(--border-light)]">
+              <div className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 border-l border-[var(--border-light)]">
                 <div className="hidden md:flex flex-col text-right">
                   <span className="text-xs font-bold text-[var(--text-main)] leading-tight">
                     {user.name}
@@ -552,25 +553,50 @@ export default function CustomerPortal() {
                   title="Sign Out"
                   className="p-2 rounded-xl text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 transition"
                 >
-                  <SignOut size={20} weight="bold" />
+                  <SignOut size={18} weight="bold" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 pl-1">
+              <div className="flex items-center gap-1 pl-1">
                 <Link
                   to="/login"
-                  className="px-3 py-2 text-xs font-bold rounded-xl text-[var(--text-main)] hover:text-[#FF6B00] transition"
+                  className="px-2.5 py-1.5 text-xs font-bold rounded-xl text-[var(--text-main)] hover:text-[#FF6B00] transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="hidden md:flex items-center gap-1 px-3.5 py-2 text-xs font-bold rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] hover:border-[#FF6B00] hover:text-[#FF6B00] transition"
+                  className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] hover:border-[#FF6B00] hover:text-[#FF6B00] transition"
                 >
-                  <UserPlus size={16} />
+                  <UserPlus size={15} />
                   <span>Sign Up</span>
                 </Link>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Search Bar - Directly accessible on phones */}
+        <div className="lg:hidden px-3 pb-2.5 pt-1 border-t border-[var(--border-light)]/40 bg-[var(--bg-card)]">
+          <div className="relative w-full">
+            <MagnifyingGlass
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <input
+              type="text"
+              placeholder="Search food, restaurants, cafes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#FF6B00]"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-[var(--text-muted)] font-bold p-1"
+              >
+                ✕
+              </button>
             )}
           </div>
         </div>
@@ -620,10 +646,10 @@ export default function CustomerPortal() {
       {/* 3. ACTIVE ORDER BANNER / TRACKER (IF CUSTOMER HAS ACTIVE ORDER) */}
       {/* ============================================================== */}
       {activeOrder && (
-        <section className="bg-gradient-to-r from-[#FF6B00]/10 via-[#FF8C33]/5 to-transparent border-b border-[#FF6B00]/20 py-4 px-4 sm:px-6 lg:px-8">
+        <section className="bg-gradient-to-r from-[#FF6B00]/10 via-[#FF8C33]/5 to-transparent border-b border-[#FF6B00]/20 py-2.5 px-3 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-[#FF6B00] text-white flex items-center justify-center font-bold text-xl shadow-md shadow-[#FF6B00]/30 animate-pulse">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#FF6B00] text-white flex items-center justify-center font-bold text-base sm:text-xl shadow-md shadow-[#FF6B00]/30 shrink-0">
                 {activeOrder.status === 'delivering' ? (
                   <Truck size={28} weight="fill" />
                 ) : activeOrder.status === 'preparing' ? (
@@ -722,7 +748,7 @@ export default function CustomerPortal() {
       {/* ============================================================== */}
       {/* 5. MAIN CONTENT AREA                                           */}
       {/* ============================================================== */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-10">
+      <main className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 w-full space-y-6 sm:space-y-10 pb-20 sm:pb-8">
         {/* If Customer clicked "My Orders" view */}
         {showOrderHistory ? (
           <section className="space-y-6">
@@ -831,25 +857,25 @@ export default function CustomerPortal() {
             {/* HERO SECTION                                                   */}
             {/* ============================================================== */}
             {!selectedBusiness && (
-              <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--bg-card)] via-[var(--bg-card)] to-[#FF6B00]/5 border border-[var(--border-light)] p-8 sm:p-12 shadow-sm">
+              <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[var(--bg-card)] via-[var(--bg-card)] to-[#FF6B00]/5 border border-[var(--border-light)] p-5 sm:p-12 shadow-sm">
                 <div className="relative z-10 max-w-2xl space-y-4">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B00]/10 border border-[#FF6B00]/20 text-[#FF6B00] text-xs font-bold uppercase tracking-wider">
                     <Sparkle size={14} weight="fill" />
                     <span>0% Commission • Multi-Business Platform</span>
                   </div>
-                  <h1 className="text-3xl sm:text-5xl font-black text-[var(--text-main)] tracking-tight leading-none">
+                  <h1 className="text-2xl sm:text-5xl font-black text-[var(--text-main)] tracking-tight leading-tight">
                     Local Flavors, <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B00] to-[#FF8C33]">
                       Delivered in Minutes.
                     </span>
                   </h1>
-                  <p className="text-sm sm:text-base text-[var(--text-muted)] font-medium leading-relaxed">
+                  <p className="text-xs sm:text-base text-[var(--text-muted)] font-medium leading-relaxed">
                     Explore Addis Ababa’s finest restaurants, artisanal cafes, and hotel kitchens. Order directly from local businesses with fast, traceable delivery.
                   </p>
 
                   {/* Highlights */}
-                  <div className="flex flex-wrap items-center gap-4 pt-2 text-xs font-bold text-[var(--text-main)]">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)]">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-1 sm:pt-2 text-[11px] sm:text-xs font-bold text-[var(--text-main)]">
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg sm:rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)]">
                       <Clock size={16} className="text-[#FF6B00]" weight="bold" />
                       <span>~25 Min Average Delivery</span>
                     </div>
@@ -931,7 +957,7 @@ export default function CustomerPortal() {
               <section className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-black text-[var(--text-main)] tracking-tight">
+                    <h2 className="text-lg sm:text-2xl font-black text-[var(--text-main)] tracking-tight">
                       Explore Food Businesses
                     </h2>
                     <p className="text-sm text-[var(--text-muted)]">
