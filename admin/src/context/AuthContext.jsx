@@ -33,17 +33,28 @@ export const AuthProvider = ({ children }) => {
     checkUser();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, requiredRole = null) => {
     const res = await api.post('/auth/login', { email, password });
-    if (res.data.user.role !== 'owner' && res.data.user.role !== 'admin') {
+    const authUser = res.data.user;
+
+    // Strict role validation based on the login portal:
+    // If logging into the Owner portal, reject 'admin', 'driver', 'customer'
+    if (requiredRole && authUser.role !== requiredRole) {
       const err = new Error('wrong_role');
-      err.role = res.data.user.role;
+      err.role = authUser.role;
       throw err;
     }
+
+    if (authUser.role !== 'owner' && authUser.role !== 'admin') {
+      const err = new Error('wrong_role');
+      err.role = authUser.role;
+      throw err;
+    }
+
     sessionStorage.setItem('token', res.data.token);
     localStorage.removeItem('token');
-    setUser(res.data.user);
-    return res.data.user;
+    setUser(authUser);
+    return authUser;
   };
 
   const logout = () => {

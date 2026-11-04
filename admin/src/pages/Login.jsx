@@ -10,14 +10,13 @@ import {
   Sun,
   Moon,
   Storefront,
-  ShieldCheck,
   ArrowRight,
   Eye,
-  EyeSlash,
-  Info
+  EyeSlash
 } from '@phosphor-icons/react';
 
 const roleHint = {
+  admin: 'Super Admin credentials must only be used on the Platform Admin Portal (/admin/login).',
   customer: 'Customer accounts use the customer food ordering site (port 5173).',
   driver: 'Driver accounts use the courier driver mobile app (port 5175).',
 };
@@ -38,11 +37,12 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      // STRICT: Enforce that only business owners can authenticate through /login
+      await login(email, password, 'owner');
       navigate('/', { replace: true });
     } catch (err) {
       if (err.message === 'wrong_role') {
-        setError(roleHint[err.role] || 'This account is neither a business owner nor a platform administrator.');
+        setError(roleHint[err.role] || 'Access denied: This login is exclusively reserved for registered Business Owners.');
       } else {
         setError(err.response?.data?.error || 'Invalid email or password.');
       }

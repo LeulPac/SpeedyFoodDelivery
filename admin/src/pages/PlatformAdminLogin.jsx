@@ -11,8 +11,7 @@ import {
   Moon,
   ArrowRight,
   Eye,
-  EyeSlash,
-  Key
+  EyeSlash
 } from '@phosphor-icons/react';
 
 export default function PlatformAdminLogin() {
@@ -31,14 +30,19 @@ export default function PlatformAdminLogin() {
     setError('');
     setLoading(true);
     try {
-      const user = await login(email, password);
+      // STRICT: Enforce that only platform super admins can authenticate here
+      const user = await login(email, password, 'admin');
       if (user.role !== 'admin') {
         setError('Access denied: Restricted to Platform Administrators only.');
         return;
       }
       navigate('/admin/overview', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid administrator credentials.');
+      if (err.message === 'wrong_role') {
+        setError('Access denied: Restricted to Platform Administrators only.');
+      } else {
+        setError(err.response?.data?.error || 'Invalid administrator credentials.');
+      }
     } finally {
       setLoading(false);
     }
