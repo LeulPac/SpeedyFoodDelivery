@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useModal } from '../context/ModalContext';
 import api, { resolveAssetUrl } from '../api';
 import Footer from '../components/Footer';
 import {
@@ -46,6 +47,7 @@ import { io } from 'socket.io-client';
 export default function CustomerPortal() {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const { showModal } = useModal();
   const navigate = useNavigate();
   const cartRef = useRef(null);
 
@@ -240,28 +242,33 @@ export default function CustomerPortal() {
     if (subTxRef) {
       api.get(`/subscriptions/verify-subscription/${subTxRef}`)
         .then((res) => {
-          alert(res.data.message || 'Business subscription verified successfully! You can now log into the Owner Portal (port 5174).');
+          showModal({ title: 'Subscription Verified', message: res.data.message || 'Business subscription verified successfully! You can now log into the Owner Portal.', type: 'success' });
           window.history.replaceState({}, document.title, window.location.pathname);
         })
         .catch((err) => {
-          alert('Subscription verification error: ' + (err.response?.data?.error || err.message));
+          showModal({ title: 'Verification Error', message: 'Subscription verification error: ' + (err.response?.data?.error || err.message), type: 'danger' });
         });
     }
   }, [user]);
 
   // Cart operations
-  const addToCart = (item) => {
-    setCart((prev) => {
-      // Check if item belongs to a different business than what is currently in cart
-      const currentBizId = prev[0]?.business_id;
-      if (currentBizId && item.business_id && currentBizId !== item.business_id) {
-        const replace = window.confirm(
-          'Your cart contains items from another business. Would you like to clear your cart and start a new order from this business?'
-        );
-        if (!replace) return prev;
-        return [{ ...item, quantity: 1 }];
-      }
+  const addToCart = async (item) => {
+    const currentBizId = cart[0]?.business_id;
+    if (currentBizId && item.business_id && currentBizId !== item.business_id) {
+      const confirmed = await showModal({
+        title: 'Start Order From New Business?',
+        message: 'Your cart contains items from another business. Would you like to clear your cart and start a new order from this business?',
+        type: 'confirm',
+        confirmText: 'Clear & Add Item',
+        cancelText: 'Keep Current Cart'
+      });
+      if (!confirmed) return;
+      setCart([{ ...item, quantity: 1 }]);
+      setCartOpen(true);
+      return;
+    }
 
+    setCart((prev) => {
       const existingIndex = prev.findIndex((i) => i.id === item.id);
       if (existingIndex > -1) {
         const updated = [...prev];
@@ -338,7 +345,7 @@ export default function CustomerPortal() {
         setActiveOrder(res.data);
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to place order. Please try again.');
+      showModal({ title: 'Order Failed', message: err.response?.data?.error || 'Failed to place order. Please try again.', type: 'danger' });
     } finally {
       setCheckoutLoading(false);
     }
@@ -346,14 +353,21 @@ export default function CustomerPortal() {
 
   const handleCancelUnpaidOrder = async (orderId) => {
     if (!orderId || actionLoading) return;
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    const confirmed = await showModal({
+      title: 'Cancel Order',
+      message: 'Are you sure you want to cancel this unpaid order?',
+      type: 'danger',
+      confirmText: 'Yes, Cancel Order',
+      cancelText: 'Keep Order'
+    });
+    if (!confirmed) return;
     setActionLoading('cancel');
     try {
       await api.delete(`/orders/${orderId}/cancel-unpaid`);
       setUnpaidChapaOrder(null);
       await fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to cancel unpaid order');
+      showModal({ title: 'Error', message: err.response?.data?.error || 'Failed to cancel unpaid order', type: 'danger' });
     } finally {
       setActionLoading(null);
     }
@@ -368,7 +382,7 @@ export default function CustomerPortal() {
         window.location.href = res.data.checkout_url;
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to initialize payment retry.');
+      showModal({ title: 'Payment Retry Error', message: err.response?.data?.error || 'Failed to initialize payment retry.', type: 'danger' });
     } finally {
       setActionLoading(null);
     }
@@ -382,7 +396,7 @@ export default function CustomerPortal() {
       setUnpaidChapaOrder(null);
       await fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to switch to Cash on Delivery');
+      showModal({ title: 'Payment Update Error', message: err.response?.data?.error || 'Failed to switch to Cash on Delivery', type: 'danger' });
     } finally {
       setActionLoading(null);
     }
@@ -396,7 +410,7 @@ export default function CustomerPortal() {
       });
       await fetchOrders();
     } catch (err) {
-      alert('Failed to confirm delivery: ' + (err.response?.data?.error || err.message));
+      showModal({ title: 'Confirmation Error', message: 'Failed to confirm delivery: ' + (err.response?.data?.error || err.message), type: 'danger' });
     }
   };
 

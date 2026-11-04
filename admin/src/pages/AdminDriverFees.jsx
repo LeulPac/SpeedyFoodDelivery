@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 
 export default function AdminDriverFees() {
+  const { showModal } = useModal();
   const [fees, setFees] = useState([]);
   const [settings, setSettings] = useState({ driver_fee_per_delivery: '25.00', grace_period_days: 7 });
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function AdminDriverFees() {
       setSettingSuccess(true);
       setTimeout(() => setSettingSuccess(false), 3000);
     } catch (err) {
-      alert('Failed to update settings: ' + (err.response?.data?.error || err.message));
+      showModal({ title: 'Update Failed', message: 'Failed to update settings: ' + (err.response?.data?.error || err.message), type: 'danger' });
     } finally {
       setUpdatingSettings(false);
     }

@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
@@ -14,6 +15,7 @@ import {
 } from '@phosphor-icons/react';
 
 export default function DriverManagement() {
+  const { showModal } = useModal();
   const [drivers, setDrivers] = useState([]);
   const [driverForm, setDriverForm] = useState({ name: '', email: '', password: '', phone: '' });
   const [editingDriver, setEditingDriver] = useState(null);
@@ -52,7 +54,7 @@ export default function DriverManagement() {
         phone: phone || 'Not Provided',
       });
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Failed to create driver account');
+      showModal({ title: 'Account Creation Failed', message: err.response?.data?.error || err.message || 'Failed to create driver account', type: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -85,19 +87,20 @@ export default function DriverManagement() {
       setEditingDriver(null);
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update driver');
+      showModal({ title: 'Update Failed', message: err.response?.data?.error || 'Failed to update driver', type: 'danger' });
     } finally {
       setEditLoading(false);
     }
   };
 
   const deleteDriver = async (driver) => {
-    if (!window.confirm(`Are you sure you want to delete courier "${driver.name}"?`)) return;
+    const confirmed = await showModal({ title: 'Delete Courier', message: `Are you sure you want to delete courier "${driver.name}"?`, type: 'danger', confirmText: 'Delete Courier', cancelText: 'Cancel' });
+    if (!confirmed) return;
     try {
       await api.delete(`/auth/drivers/${driver.id}`);
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete driver');
+      showModal({ title: 'Delete Failed', message: err.response?.data?.error || 'Failed to delete driver', type: 'danger' });
     }
   };
 
@@ -105,7 +108,7 @@ export default function DriverManagement() {
     if (!driverNotice) return;
     const text = `SpeedyDelivery Courier App (port 5175)\nUsername: ${driverNotice.email}\nPassword: ${driverNotice.password}`;
     navigator.clipboard.writeText(text);
-    alert('Courier login credentials copied to clipboard!');
+    showModal({ title: 'Copied', message: 'Courier login credentials copied to clipboard!', type: 'success' });
   };
 
   return (

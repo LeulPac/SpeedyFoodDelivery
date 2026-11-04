@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ModalProvider } from './context/ModalContext';
 import Login from './pages/Login';
 import PlatformAdminLogin from './pages/PlatformAdminLogin';
 import Layout from './pages/Layout';
@@ -41,8 +42,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+        <ModalProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Business Owner Login */}
             <Route path="/login" element={<Login />} />
             
@@ -81,6 +83,7 @@ function App() {
             />
           </Routes>
         </BrowserRouter>
+        </ModalProvider>
       </AuthProvider>
     </ThemeProvider>
   );

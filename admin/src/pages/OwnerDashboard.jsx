@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useModal } from '../context/ModalContext';
 import api, { resolveAssetUrl } from '../api';
 import { SignOut, CheckCircle, CookingPot, Package, UserCircle, Phone, User, ForkKnife, Car } from '@phosphor-icons/react';
 import { io } from 'socket.io-client';
 
 export default function OwnerDashboard() {
+  const { showModal } = useModal();
   const { user, logout } = useAuth();
   const [orders, setOrders] = useState([]);
   const [menu, setMenu] = useState([]);
@@ -76,14 +78,14 @@ export default function OwnerDashboard() {
       fetchOrders();
       fetchDrivers();
     } catch (err) {
-      alert("Failed to update order");
+      showModal({ title: 'Order Update Failed', message: 'Failed to update order', type: 'danger' });
     }
   };
 
   const assignDriver = async (orderId) => {
     const driverId = selectedDriverByOrder[orderId];
     if (!driverId) {
-      alert('Select a free driver first');
+      showModal({ title: 'Select Driver', message: 'Please select a free driver first', type: 'warning' });
       return;
     }
     try {
@@ -92,7 +94,7 @@ export default function OwnerDashboard() {
       fetchOrders();
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to assign driver');
+      showModal({ title: 'Assignment Failed', message: err.response?.data?.error || 'Failed to assign driver', type: 'danger' });
     }
   };
 
@@ -109,7 +111,7 @@ export default function OwnerDashboard() {
         password,
       });
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to create driver account');
+      showModal({ title: 'Courier Creation Failed', message: err.response?.data?.error || 'Failed to create driver account', type: 'danger' });
     }
   };
 
@@ -133,7 +135,7 @@ export default function OwnerDashboard() {
       setNewImageFiles([]);
       fetchMenu();
     } catch(err) {
-      alert("Failed to create menu item");
+      showModal({ title: 'Item Creation Failed', message: 'Failed to create menu item', type: 'danger' });
     }
   };
 
@@ -169,18 +171,19 @@ export default function OwnerDashboard() {
       setEditingItem(null);
       fetchMenu();
     } catch (_err) {
-      alert('Failed to update menu item');
+      showModal({ title: 'Item Update Failed', message: 'Failed to update menu item', type: 'danger' });
     }
   };
 
   const deleteMenuItem = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
+    const confirmed = await showModal({ title: 'Delete Menu Item', message: 'Are you sure you want to delete this menu item?', type: 'danger', confirmText: 'Delete Item', cancelText: 'Cancel' });
+    if (!confirmed) return;
     try {
       await api.delete(`/menu/${id}`);
       if (editingItem?.id === id) setEditingItem(null);
       fetchMenu();
     } catch (_err) {
-      alert('Failed to delete menu item');
+      showModal({ title: 'Delete Failed', message: 'Failed to delete menu item', type: 'danger' });
     }
   };
 

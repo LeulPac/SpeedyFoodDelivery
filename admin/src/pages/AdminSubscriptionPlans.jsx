@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 
 export default function AdminSubscriptionPlans() {
+  const { showModal } = useModal();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -52,7 +54,7 @@ export default function AdminSubscriptionPlans() {
       setEditingId(null);
       await fetchPlans();
     } catch (err) {
-      alert('Failed to update plan pricing: ' + (err.response?.data?.error || err.message));
+      showModal({ title: 'Update Failed', message: 'Failed to update plan pricing: ' + (err.response?.data?.error || err.message), type: 'danger' });
     } finally {
       setSaving(false);
     }

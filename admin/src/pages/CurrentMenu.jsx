@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api, { resolveAssetUrl } from '../api';
 import {
@@ -15,6 +16,7 @@ import {
 const MENU_CATEGORIES = ['Main Dish', 'Breakfast', 'Drinks', 'Dessert', 'Appetizers', 'Sides', 'Snacks', 'Other'];
 
 export default function CurrentMenu() {
+  const { showModal } = useModal();
   const [menu, setMenu] = useState([]);
   const [search, setSearch] = useState('');
   const [editingItem, setEditingItem] = useState(null);
@@ -69,17 +71,18 @@ export default function CurrentMenu() {
       fetchMenu();
     } catch (err) {
       console.error('Failed to update menu item:', err);
-      alert(err.response?.data?.error || 'Failed to update item');
+      showModal({ title: 'Update Failed', message: err.response?.data?.error || 'Failed to update item', type: 'danger' });
     }
   };
 
   const deleteItem = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+    const confirmed = await showModal({ title: 'Delete Menu Item', message: `Are you sure you want to delete "${name}"?`, type: 'danger', confirmText: 'Delete Item', cancelText: 'Cancel' });
+    if (!confirmed) return;
     try {
       await api.delete(`/menu/${id}`);
       fetchMenu();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete item');
+      showModal({ title: 'Delete Failed', message: err.response?.data?.error || 'Failed to delete item', type: 'danger' });
     }
   };
 
@@ -88,7 +91,7 @@ export default function CurrentMenu() {
       await api.put(`/menu/${item.id}`, { is_available: !item.is_available });
       fetchMenu();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update availability');
+      showModal({ title: 'Update Failed', message: err.response?.data?.error || 'Failed to update availability', type: 'danger' });
     }
   };
 

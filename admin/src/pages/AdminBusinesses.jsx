@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import api from '../api';
@@ -15,6 +16,7 @@ import {
 } from '@phosphor-icons/react';
 
 export default function AdminBusinesses() {
+  const { showModal } = useModal();
   const location = useLocation();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function AdminBusinesses() {
       await api.put(`/admin/businesses/${bizId}/status`, updates);
       await fetchBusinesses();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update business');
+      showModal({ title: 'Business Status Update Failed', message: err.response?.data?.error || 'Failed to update business', type: 'danger' });
     } finally {
       setActionLoading(null);
     }

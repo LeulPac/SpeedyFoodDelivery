@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import {
@@ -16,6 +17,7 @@ import {
 export default function BusinessSubscription() {
   const [business, setBusiness] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { showModal } = useModal();
   const [renewLoading, setRenewLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,10 +47,10 @@ export default function BusinessSubscription() {
       if (res.data?.checkout_url) {
         window.location.href = res.data.checkout_url;
       } else {
-        alert('Renewal initialized. Please complete payment.');
+        showModal({ title: 'Renewal Initialized', message: 'Renewal initialized. Redirecting to payment checkout...', type: 'info' });
       }
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to initialize renewal payment.');
+      showModal({ title: 'Renewal Failed', message: err.response?.data?.error || 'Failed to initialize renewal payment.', type: 'danger' });
     } finally {
       setRenewLoading(false);
     }

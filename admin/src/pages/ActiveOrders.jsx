@@ -1,3 +1,4 @@
+import { useModal } from '../context/ModalContext';
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { io } from 'socket.io-client';
@@ -33,6 +34,7 @@ function StatusBadge({ status }) {
 }
 
 export default function ActiveOrders() {
+  const { showModal } = useModal();
   const [orders, setOrders] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [selectedDriverByOrder, setSelectedDriverByOrder] = useState({});
@@ -71,13 +73,14 @@ export default function ActiveOrders() {
   };
 
   const removeOrder = async (orderId) => {
-    if (!window.confirm(`Are you sure you want to remove Order #${orderId}?`)) return;
+    const confirmed = await showModal({ title: 'Remove Order', message: `Are you sure you want to remove Order #${orderId}?`, type: 'danger', confirmText: 'Remove Order', cancelText: 'Cancel' });
+    if (!confirmed) return;
     try {
       await api.delete(`/orders/${orderId}`);
       fetchOrders();
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to remove order');
+      showModal({ title: 'Action Failed', message: err.response?.data?.error || 'Failed to remove order', type: 'danger' });
     }
   };
 
@@ -87,20 +90,20 @@ export default function ActiveOrders() {
       fetchOrders();
       fetchDrivers();
     } catch {
-      alert('Failed to update order');
+      showModal({ title: 'Update Failed', message: 'Failed to update order', type: 'danger' });
     }
   };
 
   const assignDriver = async (orderId) => {
     const driverId = selectedDriverByOrder[orderId];
-    if (!driverId) { alert('Select a free driver first'); return; }
+    if (!driverId) { showModal({ title: 'Select Courier', message: 'Please select an available driver before assigning.', type: 'warning' }); return; }
     try {
       await api.put(`/orders/${orderId}/status`, { status: 'delivering', driver_id: Number(driverId) });
       setSelectedDriverByOrder((prev) => ({ ...prev, [orderId]: '' }));
       fetchOrders();
       fetchDrivers();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to assign driver');
+      showModal({ title: 'Assignment Failed', message: err.response?.data?.error || 'Failed to assign driver', type: 'danger' });
     }
   };
 
