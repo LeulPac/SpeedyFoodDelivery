@@ -13,12 +13,14 @@ import {
   WarningCircle,
   ShieldCheck,
   TrendUp,
-  ArrowRight
+  ArrowRight,
+  ForkKnife
 } from '@phosphor-icons/react';
 
 export default function PlatformOverview() {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchMetrics = async () => {
     try {
@@ -27,6 +29,7 @@ export default function PlatformOverview() {
       setMetrics(res.data);
     } catch (err) {
       console.error('Failed to load metrics:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to connect to backend server');
     } finally {
       setLoading(false);
     }
@@ -38,8 +41,29 @@ export default function PlatformOverview() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12 text-[var(--text-muted)]">
-        <ArrowsClockwise size={28} className="animate-spin" />
+      <div className="flex flex-col items-center justify-center p-16 space-y-3 text-[var(--text-muted)]">
+        <ArrowsClockwise size={32} className="animate-spin text-[#FF6B00]" />
+        <span className="text-xs font-semibold">Loading platform financials...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 rounded-3xl bg-[var(--bg-card)] border border-rose-500/20 text-center space-y-4 max-w-lg mx-auto my-12">
+        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto">
+          <WarningCircle size={28} weight="fill" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-bold text-sm text-[var(--text-main)]">Unable to Load Platform Metrics</h3>
+          <p className="text-xs text-rose-400">{error}</p>
+        </div>
+        <button
+          onClick={fetchMetrics}
+          className="px-4 py-2 rounded-xl bg-[#FF6B00] text-white text-xs font-bold shadow-md hover:bg-[#E05E00] transition"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
