@@ -857,43 +857,26 @@ export default function CustomerPortal() {
             {/* HERO SECTION                                                   */}
             {/* ============================================================== */}
             {!selectedBusiness && (
-              <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[var(--bg-card)] via-[var(--bg-card)] to-[#FF6B00]/5 border border-[var(--border-light)] p-5 sm:p-12 shadow-sm">
-                <div className="relative z-10 max-w-2xl space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FF6B00]/10 border border-[#FF6B00]/20 text-[#FF6B00] text-xs font-bold uppercase tracking-wider">
-                    <Sparkle size={14} weight="fill" />
-                    <span>0% Commission • Multi-Business Platform</span>
-                  </div>
-                  <h1 className="text-2xl sm:text-5xl font-black text-[var(--text-main)] tracking-tight leading-tight">
-                    Local Flavors, <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B00] to-[#FF8C33]">
-                      Delivered in Minutes.
-                    </span>
-                  </h1>
-                  <p className="text-xs sm:text-base text-[var(--text-muted)] font-medium leading-relaxed">
-                    Explore Addis Ababa’s finest restaurants, artisanal cafes, and hotel kitchens. Order directly from local businesses with fast, traceable delivery.
+              <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#FF6B00]/10 via-[var(--bg-card)] to-[#FF6B00]/5 border border-[#FF6B00]/30 p-5 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 shadow-sm">
+                <div className="space-y-2 max-w-xl">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FF6B00]/15 text-[#FF6B00] text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                    <Storefront size={14} weight="bold" />
+                    SpeedyDelivery Partner Program
+                  </span>
+                  <h3 className="text-lg sm:text-2xl font-black text-[var(--text-main)] leading-tight">
+                    Are You a Restaurant, Cafe, or Hotel Kitchen?
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
+                    Join SpeedyDelivery with <strong>0% food commission</strong>. Pay a flat monthly subscription tier, dispatch your own drivers, and receive verified customer orders directly.
                   </p>
-
-                  {/* Highlights */}
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-1 sm:pt-2 text-[11px] sm:text-xs font-bold text-[var(--text-main)]">
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg sm:rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)]">
-                      <Clock size={16} className="text-[#FF6B00]" weight="bold" />
-                      <span>~25 Min Average Delivery</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)]">
-                      <ShieldCheck size={16} className="text-emerald-500" weight="bold" />
-                      <span>Chapa Verified Checkout</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)]">
-                      <Storefront size={16} className="text-blue-500" weight="bold" />
-                      <span>{businesses.length} Food Partners</span>
-                    </div>
-                  </div>
                 </div>
-
-                {/* Decorative background visual */}
-                <div className="hidden lg:block absolute right-6 bottom-0 w-80 h-full pointer-events-none opacity-20 dark:opacity-10">
-                  <div className="w-full h-full bg-[radial-gradient(circle_at_center,_#FF6B00_0%,_transparent_70%)]" />
-                </div>
+                <button
+                  onClick={() => navigate('/register-business')}
+                  className="w-full sm:w-auto whitespace-nowrap px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl sm:rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2 group"
+                >
+                  <span>Register Your Business</span>
+                  <ArrowRight size={16} weight="bold" className="group-hover:translate-x-1 transition" />
+                </button>
               </section>
             )}
 
@@ -1193,29 +1176,7 @@ export default function CustomerPortal() {
               )}
             </section>
             {/* ============================================================== */}
-            {/* PARTNER WITH SPEEDYDELIVERY BANNER                             */}
-            {/* ============================================================== */}
-            <section className="rounded-3xl bg-gradient-to-r from-[#FF6B00]/10 via-[var(--bg-card)] to-[#FF6B00]/5 border border-[#FF6B00]/30 p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-              <div className="space-y-2 max-w-xl">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF6B00]/15 text-[#FF6B00] text-xs font-bold uppercase tracking-wider">
-                  <Storefront size={16} weight="bold" />
-                  SpeedyDelivery Partner Program
-                </span>
-                <h3 className="text-2xl font-black text-[var(--text-main)]">
-                  Are You a Restaurant, Cafe, or Hotel Kitchen?
-                </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
-                  Join SpeedyDelivery with <strong>0% food commission</strong>. Pay a flat monthly subscription tier, dispatch your own drivers, and receive verified customer orders directly.
-                </p>
-              </div>
-              <button
-                onClick={() => navigate('/register-business')}
-                className="whitespace-nowrap px-6 py-4 rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-sm shadow-xl shadow-[#FF6B00]/25 transition flex items-center gap-2 group"
-              >
-                <span>Register Your Business</span>
-                <ArrowRight size={18} weight="bold" className="group-hover:translate-x-1 transition" />
-              </button>
-            </section>
+            
           </>
         )}
       </main>
