@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   ArrowRight,
   Eye,
-  EyeSlash
+  EyeSlash,
+  Info
 } from '@phosphor-icons/react';
 
 const roleHint = {
@@ -72,7 +73,7 @@ export default function Login() {
             Speedy<span className="text-[#FF6B00]">Delivery</span>
           </h1>
           <p className="text-xs text-[var(--text-muted)] font-medium">
-            Business Owner & Platform Admin Console
+            Business Owner Console
           </p>
         </div>
 
@@ -83,27 +84,26 @@ export default function Login() {
           </div>
         )}
 
-        {/* Demo credentials helper pill */}
+        {/* Informative notice directing owner to enter registered credentials */}
         <div className="p-3.5 rounded-2xl bg-[var(--bg-page)] border border-[var(--border-light)] space-y-1 text-xs">
           <span className="font-bold text-[var(--text-main)] flex items-center gap-1.5">
-            <ShieldCheck size={16} className="text-[#FF6B00]" weight="bold" /> Demo Portals:
+            <Storefront size={16} className="text-[#FF6B00]" weight="bold" /> Business Partner Sign In:
           </span>
-          <div className="flex flex-col gap-0.5 text-[11px] text-[var(--text-muted)] pl-5">
-            <span><strong>Restaurant Owner:</strong> owner@test.com / admin123</span>
-            <span><strong>Platform Admin:</strong> admin@speedydelivery.com / admin123</span>
-          </div>
+          <p className="text-[11px] text-[var(--text-muted)] pl-5 leading-relaxed">
+            Please enter the <strong>Login Email</strong> and <strong>Password</strong> you created when registering your food business and completing your subscription.
+          </p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[var(--text-main)] uppercase tracking-wider block">
-              Email Address
+              Registered Login Email
             </label>
             <div className="relative">
               <Envelope size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
               <input
                 type="email"
-                placeholder="name@business.com"
+                placeholder="your-business-email@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -141,7 +141,7 @@ export default function Login() {
             disabled={loading}
             className="w-full py-3.5 rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-sm shadow-lg shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
           >
-            <span>{loading ? 'Authenticating...' : 'Sign In to Console'}</span>
+            <span>{loading ? 'Authenticating...' : 'Sign In to Owner Console'}</span>
             <ArrowRight size={18} weight="bold" />
           </button>
         </form>

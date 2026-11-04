@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
+import PlatformAdminLogin from './pages/PlatformAdminLogin';
 import Layout from './pages/Layout';
 import ActiveOrders from './pages/ActiveOrders';
 import AddMenuItem from './pages/AddMenuItem';
@@ -42,7 +43,13 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Business Owner Login */}
             <Route path="/login" element={<Login />} />
+            
+            {/* Separate, Protected Route for Super Admin / Platform Owner */}
+            <Route path="/admin/login" element={<PlatformAdminLogin />} />
+            <Route path="/super-admin" element={<PlatformAdminLogin />} />
+
             <Route
               path="/*"
               element={

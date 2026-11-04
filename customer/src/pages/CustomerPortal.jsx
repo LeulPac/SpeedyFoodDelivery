@@ -1182,121 +1182,119 @@ export default function CustomerPortal() {
       </main>
 
       {/* ============================================================== */}
-      {/* 6. SLIDE-OVER SHOPPING CART DRAWER                             */}
+            {/* ============================================================== */}
+      {/* 6. COMPACT MODAL / BOTTOM-SHEET SHOPPING CART                  */}
       {/* ============================================================== */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm transition-opacity">
-          <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-            <div
-              ref={cartRef}
-              className="w-screen max-w-md bg-[var(--bg-card)] border-l border-[var(--border-light)] flex flex-col shadow-2xl transition-theme"
-            >
-              {/* Header */}
-              <div className="p-6 border-b border-[var(--border-light)] flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center font-bold">
-                    <ShoppingCart size={20} weight="bold" />
-                  </div>
-                  <div>
-                    <h2 className="font-black text-lg text-[var(--text-main)]">Your Cart</h2>
-                    <span className="text-xs text-[var(--text-muted)] font-medium">
-                      {cart.reduce((s, i) => s + i.quantity, 0)} items selected
-                    </span>
-                  </div>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+          <div
+            ref={cartRef}
+            className="w-full sm:max-w-md bg-[var(--bg-card)] border-t sm:border border-[var(--border-light)] rounded-t-3xl sm:rounded-3xl max-h-[85vh] sm:max-h-[88vh] flex flex-col shadow-2xl transition-theme overflow-hidden"
+          >
+            {/* Header */}
+            <div className="p-4 sm:p-5 border-b border-[var(--border-light)] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#FF6B00]/15 text-[#FF6B00] flex items-center justify-center font-bold">
+                  <ShoppingCart size={18} weight="bold" />
                 </div>
-                <button
-                  onClick={() => setCartOpen(false)}
-                  className="p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-page)] transition"
-                >
-                  <X size={20} weight="bold" />
-                </button>
+                <div>
+                  <h2 className="font-black text-base text-[var(--text-main)]">Your Cart</h2>
+                  <span className="text-[11px] text-[var(--text-muted)] font-medium">
+                    {cart.reduce((s, i) => s + i.quantity, 0)} items selected
+                  </span>
+                </div>
               </div>
+              <button
+                onClick={() => setCartOpen(false)}
+                className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-page)] transition"
+              >
+                <X size={18} weight="bold" />
+              </button>
+            </div>
 
-              {/* Items List */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
-                    <ShoppingCart size={48} className="text-[var(--text-muted)]" />
-                    <p className="font-bold text-[var(--text-main)]">Your cart is empty</p>
-                    <p className="text-xs text-[var(--text-muted)] max-w-xs">
-                      Add items from any registered restaurant or cafe to start your order.
-                    </p>
-                  </div>
-                ) : (
-                  cart.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 rounded-2xl bg-[var(--bg-page)] border border-[var(--border-light)] flex items-center justify-between gap-3"
-                    >
-                      <div className="flex-1 space-y-1">
-                        <h4 className="font-bold text-sm text-[var(--text-main)]">{item.name}</h4>
-                        <span className="text-xs font-black text-[#FF6B00]">
-                          ETB {Number(item.price).toFixed(2)}
-                        </span>
-                      </div>
+            {/* Items List - Compact & Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5 max-h-[45vh] sm:max-h-[50vh]">
+              {cart.length === 0 ? (
+                <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                  <ShoppingCart size={36} className="text-[var(--text-muted)]" />
+                  <p className="font-bold text-sm text-[var(--text-main)]">Your cart is empty</p>
+                  <p className="text-xs text-[var(--text-muted)] max-w-xs">
+                    Add items from any restaurant or cafe to start your order.
+                  </p>
+                </div>
+              ) : (
+                cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-xs text-[var(--text-main)] truncate">{item.name}</h4>
+                      <span className="text-xs font-black text-[#FF6B00]">
+                        ETB {Number(item.price).toFixed(2)}
+                      </span>
+                    </div>
 
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5 bg-[var(--bg-card)] p-1 rounded-xl border border-[var(--border-light)]">
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--text-main)] hover:bg-rose-500 hover:text-white transition"
-                          >
-                            <Minus size={12} weight="bold" />
-                          </button>
-                          <span className="w-5 text-center text-xs font-black">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, 1)}
-                            className="w-6 h-6 rounded-lg bg-[#FF6B00] flex items-center justify-center text-white hover:bg-[#E05E00] transition"
-                          >
-                            <Plus size={12} weight="bold" />
-                          </button>
-                        </div>
-
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 bg-[var(--bg-card)] p-1 rounded-lg border border-[var(--border-light)]">
                         <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="p-2 text-[var(--text-muted)] hover:text-rose-500 transition"
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="w-5 h-5 rounded-md flex items-center justify-center text-[var(--text-main)] hover:bg-rose-500 hover:text-white transition"
                         >
-                          <Trash size={16} />
+                          <Minus size={11} weight="bold" />
+                        </button>
+                        <span className="w-4 text-center text-xs font-black">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, 1)}
+                          className="w-5 h-5 rounded-lg bg-[#FF6B00] flex items-center justify-center text-white hover:bg-[#E05E00] transition"
+                        >
+                          <Plus size={11} weight="bold" />
                         </button>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
 
-              {/* Cart Footer / Checkout summary */}
-              {cart.length > 0 && (
-                <div className="p-6 border-t border-[var(--border-light)] bg-[var(--bg-card)] space-y-4">
-                  <div className="space-y-1.5 text-xs text-[var(--text-muted)]">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span className="font-bold text-[var(--text-main)]">ETB {cartTotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Standard Delivery</span>
-                      <span className="font-bold text-[var(--text-main)]">ETB {deliveryFee.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-base font-black text-[var(--text-main)] pt-2 border-t border-[var(--border-light)]">
-                      <span>Total Amount</span>
-                      <span className="text-[#FF6B00]">ETB {grandTotal.toFixed(2)}</span>
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="p-1 text-[var(--text-muted)] hover:text-rose-500 transition"
+                      >
+                        <Trash size={15} />
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleInitiateCheckout}
-                    className="w-full py-3.5 rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-sm shadow-lg shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
-                  >
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight size={18} weight="bold" />
-                  </button>
-                </div>
+                ))
               )}
             </div>
+
+            {/* Cart Footer / Checkout summary */}
+            {cart.length > 0 && (
+              <div className="p-4 sm:p-5 border-t border-[var(--border-light)] bg-[var(--bg-card)] space-y-3 shrink-0">
+                <div className="space-y-1 text-xs text-[var(--text-muted)]">
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-[var(--text-main)]">ETB {cartTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Delivery</span>
+                    <span className="font-semibold text-[var(--text-main)]">ETB {deliveryFee.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-black text-[var(--text-main)] pt-1.5 border-t border-[var(--border-light)]">
+                    <span>Total Amount</span>
+                    <span className="text-[#FF6B00]">ETB {grandTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleInitiateCheckout}
+                  className="w-full py-3 rounded-xl sm:rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-xs sm:text-sm shadow-md shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
+                >
+                  <span>Proceed to Checkout</span>
+                  <ArrowRight size={16} weight="bold" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* ============================================================== */}
       {/* 7. CHECKOUT MODAL                                              */}
       {/* ============================================================== */}
       {isCheckoutModalOpen && (
