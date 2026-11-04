@@ -92,7 +92,7 @@ export default function RegisterBusiness() {
         .catch((err) => {
           setVerificationResult({
             success: false,
-            message: err.response?.data?.error || err.message || 'Payment verification failed with Chapa.',
+            message: err.response?.data?.error || err.message || 'Payment verification failed.',
           });
         })
         .finally(() => {

@@ -125,14 +125,14 @@ export default function Layout({ children }) {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-68 bg-[var(--bg-card)] border-r border-[var(--border-light)]
+          fixed top-0 left-0 h-full w-56 bg-[var(--bg-card)] border-r border-[var(--border-light)]
           flex flex-col z-40 transition-transform duration-300 shadow-sm
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           xl:translate-x-0 xl:static xl:z-auto
         `}
       >
         {/* Logo & Brand */}
-        <div className="p-6 border-b border-[var(--border-light)] flex items-center justify-between">
+        <div className="p-4 border-b border-[var(--border-light)] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF6B00] to-[#FF8C33] flex items-center justify-center text-white shadow-md shadow-[#FF6B00]/25">
               <Truck size={22} weight="fill" />
@@ -163,7 +163,7 @@ export default function Layout({ children }) {
               end={exact}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all font-semibold text-xs tracking-tight
+                `flex items-center gap-3 px-3 py-2 rounded-xl border transition-all font-semibold text-[11px] tracking-tight
                 ${
                   isActive
                     ? 'border-[#FF6B00] bg-[#FF6B00]/10 text-[#FF6B00]'
@@ -248,7 +248,7 @@ export default function Layout({ children }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-8 overflow-auto">
+        <main className="flex-1 p-3 sm:p-5 overflow-auto">
           {children}
         </main>
       </div>

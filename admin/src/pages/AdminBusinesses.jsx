@@ -3,18 +3,15 @@ import { useLocation } from 'react-router-dom';
 import api from '../api';
 import {
   Storefront,
-  CheckCircle,
-  WarningCircle,
   ArrowsClockwise,
   MagnifyingGlass,
   Check,
   X,
   CreditCard,
   ShieldCheck,
-  Clock,
-  Sparkle,
   Phone,
-  Envelope
+  Envelope,
+  MapPin
 } from '@phosphor-icons/react';
 
 export default function AdminBusinesses() {
@@ -94,64 +91,64 @@ export default function AdminBusinesses() {
   });
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-4 max-w-full">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-[var(--text-main)] tracking-tight">
+          <h1 className="text-lg font-black text-[var(--text-main)] tracking-tight">
             Registered Businesses
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            Review paid partner subscriptions, approve kitchen applications & manage vendor statuses
+          <p className="text-[11px] text-[var(--text-muted)]">
+            Review paid partner subscriptions, approve kitchen applications & manage vendors
           </p>
         </div>
 
         <div className="relative max-w-xs w-full">
           <MagnifyingGlass
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
           />
           <input
             type="text"
-            placeholder="Search business, owner, phone, or tx ref..."
+            placeholder="Search business, owner, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
+            className="w-full pl-8 pr-3 py-1.5 text-[11px] rounded-lg bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
           />
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
             activeTab === 'all'
-              ? 'bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/20'
+              ? 'bg-[#FF6B00] text-white shadow-sm'
               : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)]'
           }`}
         >
           <span>All Businesses</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/20 text-inherit font-black">
+          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-black/20 text-inherit font-black">
             {businesses.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
             activeTab === 'pending'
-              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+              ? 'bg-amber-500 text-white shadow-sm'
               : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-amber-500'
           }`}
         >
-          <span>Pending Approval (Paid)</span>
+          <span>Pending Approval</span>
           {pendingCount > 0 ? (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-600 text-white font-black animate-pulse">
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-amber-600 text-white font-black animate-pulse">
               {pendingCount}
             </span>
           ) : (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/20 text-inherit font-black">
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-black/20 text-inherit font-black">
               0
             </span>
           )}
@@ -159,28 +156,28 @@ export default function AdminBusinesses() {
 
         <button
           onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
             activeTab === 'active'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              ? 'bg-emerald-600 text-white shadow-sm'
               : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-emerald-500'
           }`}
         >
-          <span>Active Subscriptions</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/20 text-inherit font-black">
+          <span>Active</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-black/20 text-inherit font-black">
             {activeCount}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab('suspended')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
             activeTab === 'suspended'
-              ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+              ? 'bg-rose-600 text-white shadow-sm'
               : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-rose-500'
           }`}
         >
           <span>Suspended</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-black/20 text-inherit font-black">
+          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-black/20 text-inherit font-black">
             {suspendedCount}
           </span>
         </button>
@@ -189,33 +186,33 @@ export default function AdminBusinesses() {
       {/* Main Table / Content */}
       {loading ? (
         <div className="flex items-center justify-center p-12 text-[var(--text-muted)]">
-          <ArrowsClockwise size={28} className="animate-spin" />
+          <ArrowsClockwise size={24} className="animate-spin text-[#FF6B00]" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] space-y-2">
-          <Storefront size={40} className="mx-auto text-[var(--text-muted)]" />
-          <h3 className="font-bold text-[var(--text-main)]">No businesses found</h3>
-          <p className="text-xs text-[var(--text-muted)]">
+        <div className="p-8 text-center rounded-2xl bg-[var(--bg-card)] border border-[var(--border-light)] space-y-1.5">
+          <Storefront size={32} className="mx-auto text-[var(--text-muted)]" />
+          <h3 className="font-bold text-xs text-[var(--text-main)]">No businesses found</h3>
+          <p className="text-[11px] text-[var(--text-muted)]">
             {activeTab === 'pending'
-              ? 'No businesses are currently waiting for approval. All paid requests have been reviewed!'
+              ? 'No businesses are currently waiting for approval.'
               : 'No businesses match the selected filter or search term.'}
           </p>
         </div>
       ) : (
-        <div className="rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] overflow-hidden shadow-sm">
+        <div className="rounded-2xl bg-[var(--bg-card)] border border-[var(--border-light)] overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[var(--border-light)] bg-[var(--bg-page)] text-[var(--text-muted)] uppercase tracking-wider font-bold">
-                  <th className="p-4">Business Details</th>
-                  <th className="p-4">Owner & Contact</th>
-                  <th className="p-4">Chapa Payment & Plan</th>
-                  <th className="p-4">Activity & Catalog</th>
-                  <th className="p-4">Review Status</th>
-                  <th className="p-4 text-right">Admin Action</th>
+                <tr className="border-b border-[var(--border-light)] bg-[var(--bg-page)] text-[var(--text-muted)] uppercase tracking-wider font-bold text-[10px]">
+                  <th className="py-2.5 px-3 min-w-[170px]">Business</th>
+                  <th className="py-2.5 px-3 min-w-[160px]">Owner & Contact</th>
+                  <th className="py-2.5 px-3 min-w-[190px]">Subscription & Chapa Payment</th>
+                  <th className="py-2.5 px-3 text-center min-w-[80px]">Catalog</th>
+                  <th className="py-2.5 px-3 min-w-[120px]">Status</th>
+                  <th className="py-2.5 px-3 text-right min-w-[130px]">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border-light)] text-[var(--text-main)]">
+              <tbody className="divide-y divide-[var(--border-light)] text-[var(--text-main)] text-[11px]">
                 {filtered.map((b) => {
                   const isPending = !b.is_approved || b.subscription_status === 'paid_pending_approval';
                   const hasPaidChapa = b.payment_record_status === 'paid' || b.verified_payment_amount;
@@ -223,58 +220,60 @@ export default function AdminBusinesses() {
                   return (
                     <tr
                       key={b.id}
-                      className={`hover:bg-[var(--bg-page)]/50 transition ${
-                        isPending ? 'bg-amber-500/5' : ''
+                      className={`hover:bg-[var(--bg-page)]/60 transition ${
+                        isPending ? 'bg-amber-500/[0.04]' : ''
                       }`}
                     >
-                      {/* 1. Business Details */}
-                      <td className="p-4">
-                        <div className="font-bold text-sm text-[var(--text-main)] flex items-center gap-1.5">
+                      {/* 1. Business */}
+                      <td className="py-2.5 px-3 align-top">
+                        <div className="font-bold text-xs text-[var(--text-main)] leading-tight flex items-center gap-1.5">
                           <span>{b.name}</span>
                           {isPending && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 text-[10px] font-black uppercase">
-                              Needs Approval
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-500/15 text-amber-500 shrink-0">
+                              New
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 mt-1">
-                          <span className="px-2 py-0.5 rounded-md bg-[#FF6B00]/10 text-[#FF6B00] font-bold">
+                        <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)] mt-1">
+                          <span className="px-1.5 py-0.2 rounded bg-[#FF6B00]/10 text-[#FF6B00] font-semibold text-[9px]">
                             {b.business_type}
                           </span>
-                          <span className="truncate max-w-xs">{b.address || 'Addis Ababa'}</span>
+                          <span className="truncate max-w-[130px] flex items-center gap-0.5">
+                            <MapPin size={10} className="shrink-0" />
+                            {b.address || 'Addis Ababa'}
+                          </span>
                         </div>
                       </td>
 
                       {/* 2. Owner & Contact */}
-                      <td className="p-4 space-y-0.5">
-                        <div className="font-semibold text-[var(--text-main)]">
+                      <td className="py-2.5 px-3 align-top space-y-0.5">
+                        <div className="font-semibold text-[var(--text-main)] leading-tight">
                           {b.owner_name || b.owner_account_name || 'Owner'}
                         </div>
-                        <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
-                          <Envelope size={12} />
-                          <span>{b.email || b.owner_account_email}</span>
+                        <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1 truncate max-w-[160px]">
+                          <Envelope size={11} className="shrink-0" />
+                          <span className="truncate">{b.email || b.owner_account_email}</span>
                         </div>
-                        <div className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
-                          <Phone size={12} />
+                        <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
+                          <Phone size={11} className="shrink-0" />
                           <span>{b.phone || 'N/A'}</span>
                         </div>
                       </td>
 
-                      {/* 3. Chapa Payment & Plan */}
-                      <td className="p-4 space-y-1">
-                        <div className="flex items-center gap-1.5 font-bold text-[#FF6B00]">
-                          <CreditCard size={14} weight="bold" />
+                      {/* 3. Subscription & Chapa Payment */}
+                      <td className="py-2.5 px-3 align-top space-y-1">
+                        <div className="flex items-center gap-1 font-semibold text-[#FF6B00] text-[10px]">
+                          <CreditCard size={12} weight="bold" />
                           <span>{b.plan_name || 'Monthly Plan'}</span>
-                          <span className="text-[10px] text-[var(--text-muted)] font-normal">
+                          <span className="text-[var(--text-muted)] font-normal">
                             (ETB {Number(b.plan_price || 0).toFixed(0)}/mo)
                           </span>
                         </div>
 
-                        {/* Verified Chapa Payment Badge */}
                         {hasPaidChapa ? (
-                          <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] space-y-0.5 text-emerald-500">
+                          <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-500 space-y-0.5">
                             <div className="flex items-center gap-1 font-bold">
-                              <ShieldCheck size={14} weight="bold" />
+                              <ShieldCheck size={12} weight="bold" />
                               <span>Chapa Verified: ETB {Number(b.verified_payment_amount || b.plan_price).toFixed(2)}</span>
                             </div>
                             {b.verified_tx_ref && (
@@ -284,47 +283,39 @@ export default function AdminBusinesses() {
                             )}
                           </div>
                         ) : (
-                          <div className="text-[10px] text-amber-500 font-semibold">
+                          <span className="text-[10px] text-amber-500 font-medium">
                             Pending Initial Payment
-                          </div>
+                          </span>
                         )}
                       </td>
 
-                      {/* 4. Activity & Catalog */}
-                      <td className="p-4">
-                        <div className="font-semibold">{b.menu_items_count || 0} Dishes</div>
-                        <div className="text-[11px] text-[var(--text-muted)]">
-                          {b.orders_count || 0} Lifetime Orders
+                      {/* 4. Catalog */}
+                      <td className="py-2.5 px-3 align-top text-center">
+                        <div className="font-semibold text-xs leading-tight">{b.menu_items_count || 0}</div>
+                        <div className="text-[9px] text-[var(--text-muted)]">Dishes</div>
+                        <div className="text-[9px] text-[var(--text-muted)] mt-1">{b.orders_count || 0} Orders</div>
+                      </td>
+
+                      {/* 5. Status */}
+                      <td className="py-2.5 px-3 align-top space-y-1">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                            b.is_approved
+                              ? 'bg-emerald-500/15 text-emerald-500'
+                              : 'bg-amber-500/15 text-amber-500'
+                          }`}
+                        >
+                          {b.is_approved ? 'Approved ✓' : 'Awaiting Approval'}
+                        </span>
+                        <div className="text-[9px] text-[var(--text-muted)]">
+                          Sub: <strong className="text-[var(--text-main)] font-semibold">{b.subscription_status}</strong>
                         </div>
                       </td>
 
-                      {/* 5. Review Status */}
-                      <td className="p-4 space-y-1.5">
-                        <div>
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              b.is_approved
-                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                            }`}
-                          >
-                            {b.is_approved ? 'Approved ✓' : 'Awaiting Approval'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-[var(--text-muted)] block">
-                            Sub Status:{' '}
-                            <strong className="text-[var(--text-main)]">
-                              {b.subscription_status}
-                            </strong>
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 6. Admin Actions */}
-                      <td className="p-4 text-right space-x-2">
+                      {/* 6. Admin Action */}
+                      <td className="py-2.5 px-3 align-top text-right">
                         {isPending ? (
-                          <div className="inline-flex items-center gap-1.5">
+                          <div className="inline-flex items-center gap-1 justify-end">
                             <button
                               onClick={() =>
                                 handleUpdateStatus(b.id, {
@@ -334,10 +325,11 @@ export default function AdminBusinesses() {
                                 })
                               }
                               disabled={actionLoading === b.id}
-                              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition flex items-center gap-1"
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold shadow-sm transition flex items-center gap-1"
+                              title="Approve & Activate"
                             >
-                              <Check size={14} weight="bold" />
-                              <span>Approve & Activate</span>
+                              <Check size={12} weight="bold" />
+                              <span>Approve</span>
                             </button>
                             <button
                               onClick={() =>
@@ -348,9 +340,10 @@ export default function AdminBusinesses() {
                                 })
                               }
                               disabled={actionLoading === b.id}
-                              className="px-2.5 py-2 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-bold transition"
+                              className="p-1.5 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-[10px] font-bold transition"
+                              title="Reject / Suspend"
                             >
-                              <X size={14} weight="bold" />
+                              <X size={12} weight="bold" />
                             </button>
                           </div>
                         ) : b.is_approved ? (
@@ -363,7 +356,7 @@ export default function AdminBusinesses() {
                               })
                             }
                             disabled={actionLoading === b.id}
-                            className="px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-xs font-bold transition"
+                            className="px-2.5 py-1 rounded-lg border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 text-[10px] font-bold transition"
                           >
                             Suspend
                           </button>
@@ -377,7 +370,7 @@ export default function AdminBusinesses() {
                               })
                             }
                             disabled={actionLoading === b.id}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition"
                           >
                             Reactivate
                           </button>
