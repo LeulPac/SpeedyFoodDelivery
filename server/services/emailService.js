@@ -162,3 +162,4 @@ Use this link to manage your menu, couriers, and live customer orders.
 module.exports = {
   sendOwnerWelcomeEmail,
 };
+

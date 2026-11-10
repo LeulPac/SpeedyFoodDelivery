@@ -232,12 +232,21 @@ const registerBusiness = async (req, res) => {
     );
     const user = userRes.rows[0];
 
+    // Generate unique portal_code for the business owner
+    const cleanSlug = String(business_name)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'biz';
+    const randomSuffix = crypto.randomBytes(3).toString('hex');
+    const portalCode = `${cleanSlug}-${Date.now().toString(36)}-${randomSuffix}`;
+
     // Create business in unapproved, pending payment state
     const bizRes = await db.query(
       `INSERT INTO businesses (
         owner_id, name, business_type, owner_name, email, phone, address, description,
-        logo_url, cover_url, is_approved, is_active, subscription_plan_id, subscription_status
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, true, $11, 'pending')
+        logo_url, cover_url, is_approved, is_active, subscription_plan_id, subscription_status, portal_code
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, true, $11, 'pending', $12)
       RETURNING *`,
       [
         user.id,
@@ -251,6 +260,7 @@ const registerBusiness = async (req, res) => {
         logo_url || null,
         cover_url || null,
         plan.id,
+        portalCode,
       ]
     );
     const business = bizRes.rows[0];
@@ -394,10 +404,21 @@ const verifySubscriptionPayment = async (req, res) => {
         [payment.plan_id, expiresAt, payment.business_id]
       );
 
+      const verifiedBiz = updatedBiz.rows[0];
+
+      // Dispatch automated Welcome Email with unique Owner Portal Link
+      sendOwnerWelcomeEmail({
+        toEmail: verifiedBiz.email,
+        ownerName: verifiedBiz.owner_name,
+        businessName: verifiedBiz.name,
+        portalCode: verifiedBiz.portal_code,
+        planName: (await db.query('SELECT name FROM subscription_plans WHERE id = $1', [payment.plan_id])).rows[0]?.name || 'Professional'
+      }).catch(err => console.error('Background welcome email error:', err));
+
       return res.json({
         success: true,
-        message: 'Subscription payment verified! Your application has been directed to the Platform Administrator for final approval.',
-        business: updatedBiz.rows[0],
+        message: 'Subscription payment verified! Your application has been directed to the Platform Administrator for final approval. Your dedicated Owner Portal link has been sent to your email.',
+        business: verifiedBiz,
         pending_approval: true
       });
     } else {
