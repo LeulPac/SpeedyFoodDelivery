@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ModalProvider } from './context/ModalContext';
 import Login from './pages/Login';
+import BusinessPortalLogin from './pages/BusinessPortalLogin';
 import PlatformAdminLogin from './pages/PlatformAdminLogin';
 import Layout from './pages/Layout';
 import ActiveOrders from './pages/ActiveOrders';
@@ -47,6 +48,10 @@ function App() {
             <Routes>
             {/* Business Owner Login */}
             <Route path="/login" element={<Login />} />
+            
+            {/* Dedicated Unique Business Portal Login */}
+            <Route path="/portal/:portalCode" element={<BusinessPortalLogin />} />
+            <Route path="/login/:portalCode" element={<BusinessPortalLogin />} />
             
             {/* Separate, Protected Route for Super Admin / Platform Owner */}
             <Route path="/admin/login" element={<PlatformAdminLogin />} />

@@ -1,3 +1,4 @@
+const { sendOwnerWelcomeEmail } = require('../services/emailService');
 const db = require('../db');
 
 /**
@@ -154,7 +155,20 @@ const updateBusinessStatus = async (req, res) => {
       return res.status(404).json({ error: 'Business not found' });
     }
 
-    res.json(result.rows[0]);
+    const approvedBiz = result.rows[0];
+
+    // If approved, notify owner with their dedicated portal link
+    if (is_approved === true && approvedBiz) {
+      sendOwnerWelcomeEmail({
+        toEmail: approvedBiz.email,
+        ownerName: approvedBiz.owner_name,
+        businessName: approvedBiz.name,
+        portalCode: approvedBiz.portal_code,
+        planName: 'Active Partner'
+      }).catch(e => console.error('Approval email error:', e));
+    }
+
+    res.json(approvedBiz);
   } catch (err) {
     console.error('updateBusinessStatus error:', err);
     res.status(500).json({ error: 'Server error updating business' });

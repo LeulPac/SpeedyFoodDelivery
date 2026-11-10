@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+const { sendOwnerWelcomeEmail } = require('../services/emailService');
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -75,6 +77,49 @@ const getBusinesses = async (req, res) => {
 /**
  * Public: Get single business details
  */
+
+/**
+ * Public: Get business metadata by unique portal code for branded login
+ */
+const getBusinessByPortalCode = async (req, res) => {
+  try {
+    const { portalCode } = req.params;
+    if (!portalCode) {
+      return res.status(400).json({ error: 'Portal code is required' });
+    }
+
+    const result = await db.query(`
+      SELECT 
+        b.id,
+        b.name,
+        b.business_type,
+        b.owner_name,
+        b.email,
+        b.phone,
+        b.address,
+        b.description,
+        b.logo_url,
+        b.cover_url,
+        b.portal_code,
+        b.is_approved,
+        b.is_active,
+        sp.name AS plan_name
+      FROM businesses b
+      LEFT JOIN subscription_plans sp ON b.subscription_plan_id = sp.id
+      WHERE b.portal_code = $1
+    `, [portalCode]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Business portal not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('getBusinessByPortalCode error:', err);
+    res.status(500).json({ error: 'Server error loading business portal' });
+  }
+};
+
 const getBusinessById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -534,6 +579,7 @@ const updateMyBusiness = async (req, res) => {
 module.exports = {
   getBusinesses,
   getBusinessById,
+  getBusinessByPortalCode,
   getBusinessMenu,
   getSubscriptionPlans,
   registerBusiness,
