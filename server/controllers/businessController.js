@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { sendOwnerWelcomeEmail } = require('../services/emailService');
+const { uploadImageBuffer } = require('../services/uploadService');
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -232,6 +233,26 @@ const registerBusiness = async (req, res) => {
     );
     const user = userRes.rows[0];
 
+    // Upload logo and cover if provided as files or keep URLs
+    let finalLogoUrl = logo_url || null;
+    let finalCoverUrl = cover_url || null;
+
+    if (req.files?.logo && req.files.logo[0]) {
+      try {
+        finalLogoUrl = await uploadImageBuffer(req.files.logo[0].buffer, 'food-delivery/logos', 'logo');
+      } catch (uploadErr) {
+        console.warn('Failed to upload logo image:', uploadErr.message);
+      }
+    }
+
+    if (req.files?.cover && req.files.cover[0]) {
+      try {
+        finalCoverUrl = await uploadImageBuffer(req.files.cover[0].buffer, 'food-delivery/covers', 'cover');
+      } catch (uploadErr) {
+        console.warn('Failed to upload cover image:', uploadErr.message);
+      }
+    }
+
     // Generate unique portal_code for the business owner
     const cleanSlug = String(business_name)
       .toLowerCase()
@@ -257,8 +278,8 @@ const registerBusiness = async (req, res) => {
         phone ? String(phone).trim() : null,
         address ? String(address).trim() : null,
         description ? String(description).trim() : '',
-        logo_url || null,
-        cover_url || null,
+        finalLogoUrl,
+        finalCoverUrl,
         plan.id,
         portalCode,
       ]
