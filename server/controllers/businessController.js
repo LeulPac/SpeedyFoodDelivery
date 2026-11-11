@@ -428,13 +428,19 @@ const verifySubscriptionPayment = async (req, res) => {
       const verifiedBiz = updatedBiz.rows[0];
 
       // Dispatch automated Welcome Email with unique Owner Portal Link
-      sendOwnerWelcomeEmail({
-        toEmail: verifiedBiz.email,
-        ownerName: verifiedBiz.owner_name,
-        businessName: verifiedBiz.name,
-        portalCode: verifiedBiz.portal_code,
-        planName: (await db.query('SELECT name FROM subscription_plans WHERE id = $1', [payment.plan_id])).rows[0]?.name || 'Professional'
-      }).catch(err => console.error('Background welcome email error:', err));
+      try {
+        const planNameRes = await db.query('SELECT name FROM subscription_plans WHERE id = $1', [payment.plan_id]);
+        const emailResult = await sendOwnerWelcomeEmail({
+          toEmail: verifiedBiz.email,
+          ownerName: verifiedBiz.owner_name,
+          businessName: verifiedBiz.name,
+          portalCode: verifiedBiz.portal_code,
+          planName: planNameRes.rows[0]?.name || 'Professional'
+        });
+        console.log('✅ Subscription verification email sent result:', emailResult);
+      } catch (err) {
+        console.error('❌ Failed to dispatch verification email:', err);
+      }
 
       return res.json({
         success: true,

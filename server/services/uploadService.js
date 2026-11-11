@@ -57,3 +57,4 @@ const saveToLocal = (buffer, filenamePrefix, resolve, reject) => {
 module.exports = {
   uploadImageBuffer,
 };
+
