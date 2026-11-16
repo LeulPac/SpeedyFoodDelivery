@@ -1,8 +1,6 @@
-const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 
 let resendClient = null;
-let smtpTransporter = null;
 
 const getResendClient = () => {
   if (resendClient) return resendClient;
@@ -14,42 +12,17 @@ const getResendClient = () => {
   return null;
 };
 
-const getSmtpTransporter = () => {
-  if (smtpTransporter) return smtpTransporter;
-
-  const host = process.env.SMTP_HOST;
-  const port = Number(process.env.SMTP_PORT) || 465;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
-
-  if (!host || !user || !pass) {
-    return null;
-  }
-
-  smtpTransporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: process.env.SMTP_SECURE === 'true' || port === 465,
-    auth: { user, pass },
-    connectionTimeout: 8000,
-  });
-
-  return smtpTransporter;
-};
-
 /**
  * Send Welcome Email with Personalized Owner Portal Link
- * Prioritizes Resend HTTP API (works seamlessly on Render without SMTP blocks).
- * Falls back to SMTP if Resend is unavailable.
+ * Strictly uses Resend HTTP REST API over Port 443.
+ * Eliminates legacy SMTP timeouts entirely.
  */
 const sendOwnerWelcomeEmail = async ({ toEmail, ownerName, businessName, portalCode, planName }) => {
   const adminBaseUrl = (process.env.ADMIN_PORTAL_BASE_URL || 'https://admin-nu-pied-33.vercel.app').replace(/\/$/, '');
   const portalUrl = `${adminBaseUrl}/portal/${portalCode}`;
   
-  // Resend default sender for unverified custom domains is onboarding@resend.dev
+  // Resend verified domain or default test domain
   const resendFrom = process.env.RESEND_FROM || 'SpeedyDelivery <onboarding@resend.dev>';
-  const smtpFrom = process.env.SMTP_FROM || `"SpeedyDelivery" <${process.env.SMTP_USER}>`;
-
   const subject = `Welcome to SpeedyDelivery! Your Dedicated Owner Portal Link for ${businessName}`;
 
   const html = `
@@ -154,7 +127,6 @@ Use this link to manage your menu, couriers, and live customer orders.
 - The SpeedyDelivery Team
   `;
 
-  // 1. Try Resend HTTP API first (Bypasses all cloud port blocks)
   const resend = getResendClient();
   if (resend) {
     try {
@@ -167,32 +139,15 @@ Use this link to manage your menu, couriers, and live customer orders.
       });
 
       if (data.error) {
-        console.warn('⚠️ Resend API returned error:', data.error);
+        console.warn('⚠️ Resend API returned error:', data.error.message || data.error);
+        return { success: false, error: data.error.message || data.error, portalUrl };
       } else {
         console.log(`✅ Welcome email dispatched via Resend HTTP API to ${toEmail} (ID: ${data.data?.id})`);
         return { success: true, provider: 'resend', id: data.data?.id, portalUrl };
       }
     } catch (resendErr) {
       console.warn('⚠️ Resend dispatch error:', resendErr.message);
-    }
-  }
-
-  // 2. Fallback to SMTP
-  const smtp = getSmtpTransporter();
-  if (smtp) {
-    try {
-      const info = await smtp.sendMail({
-        from: smtpFrom,
-        to: toEmail,
-        subject,
-        text,
-        html,
-      });
-      console.log(`✅ Welcome email dispatched via SMTP to ${toEmail} (MessageId: ${info.messageId})`);
-      return { success: true, provider: 'smtp', messageId: info.messageId, portalUrl };
-    } catch (smtpErr) {
-      console.error(`❌ SMTP dispatch failed:`, smtpErr.message);
-      return { success: false, error: smtpErr.message, portalUrl };
+      return { success: false, error: resendErr.message, portalUrl };
     }
   }
 
