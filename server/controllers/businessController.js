@@ -442,10 +442,14 @@ const verifySubscriptionPayment = async (req, res) => {
         console.error('❌ Failed to dispatch verification email:', err);
       }
 
+      const adminBaseUrl = (process.env.ADMIN_PORTAL_BASE_URL || 'https://admin-nu-pied-33.vercel.app').replace(/\/$/, '');
+      const directPortalUrl = `${adminBaseUrl}/portal/${verifiedBiz.portal_code}`;
+
       return res.json({
         success: true,
         message: 'Subscription payment verified! Your application has been directed to the Platform Administrator for final approval. Your dedicated Owner Portal link has been sent to your email.',
         business: verifiedBiz,
+        portal_url: directPortalUrl,
         pending_approval: true
       });
     } else {

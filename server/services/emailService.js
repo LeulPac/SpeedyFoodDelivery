@@ -1,9 +1,21 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-let transporter = null;
+let resendClient = null;
+let smtpTransporter = null;
 
-const getTransporter = () => {
-  if (transporter) return transporter;
+const getResendClient = () => {
+  if (resendClient) return resendClient;
+  const apiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
+  if (apiKey) {
+    resendClient = new Resend(apiKey);
+    return resendClient;
+  }
+  return null;
+};
+
+const getSmtpTransporter = () => {
+  if (smtpTransporter) return smtpTransporter;
 
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT) || 465;
@@ -11,27 +23,34 @@ const getTransporter = () => {
   const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
 
   if (!host || !user || !pass) {
-    console.warn('⚠️ SMTP credentials not fully configured. Emails will be logged to console.');
     return null;
   }
 
-  transporter = nodemailer.createTransport({
+  smtpTransporter = nodemailer.createTransport({
     host,
     port,
     secure: process.env.SMTP_SECURE === 'true' || port === 465,
     auth: { user, pass },
+    connectionTimeout: 8000,
   });
 
-  return transporter;
+  return smtpTransporter;
 };
 
 /**
  * Send Welcome Email with Personalized Owner Portal Link
+ * Prioritizes Resend HTTP API (works seamlessly on Render without SMTP blocks).
+ * Falls back to SMTP if Resend is unavailable.
  */
 const sendOwnerWelcomeEmail = async ({ toEmail, ownerName, businessName, portalCode, planName }) => {
   const adminBaseUrl = (process.env.ADMIN_PORTAL_BASE_URL || 'https://admin-nu-pied-33.vercel.app').replace(/\/$/, '');
   const portalUrl = `${adminBaseUrl}/portal/${portalCode}`;
-  const sender = process.env.SMTP_FROM || `"SpeedyDelivery" <${process.env.SMTP_USER}>`;
+  
+  // Resend default sender for unverified custom domains is onboarding@resend.dev
+  const resendFrom = process.env.RESEND_FROM || 'SpeedyDelivery <onboarding@resend.dev>';
+  const smtpFrom = process.env.SMTP_FROM || `"SpeedyDelivery" <${process.env.SMTP_USER}>`;
+
+  const subject = `Welcome to SpeedyDelivery! Your Dedicated Owner Portal Link for ${businessName}`;
 
   const html = `
 <!DOCTYPE html>
@@ -135,31 +154,52 @@ Use this link to manage your menu, couriers, and live customer orders.
 - The SpeedyDelivery Team
   `;
 
-  const mailOptions = {
-    from: sender,
-    to: toEmail,
-    subject: `Welcome to SpeedyDelivery! Your Dedicated Owner Portal Link for ${businessName}`,
-    text,
-    html,
-  };
-
-  const mailer = getTransporter();
-  if (mailer) {
+  // 1. Try Resend HTTP API first (Bypasses all cloud port blocks)
+  const resend = getResendClient();
+  if (resend) {
     try {
-      const info = await mailer.sendMail(mailOptions);
-      console.log(`✅ Welcome email dispatched successfully to ${toEmail} (MessageId: ${info.messageId})`);
-      return { success: true, messageId: info.messageId, portalUrl };
-    } catch (err) {
-      console.error(`❌ Failed to send welcome email to ${toEmail}:`, err.message);
-      return { success: false, error: err.message, portalUrl };
+      const data = await resend.emails.send({
+        from: resendFrom,
+        to: [toEmail],
+        subject,
+        text,
+        html,
+      });
+
+      if (data.error) {
+        console.warn('⚠️ Resend API returned error:', data.error);
+      } else {
+        console.log(`✅ Welcome email dispatched via Resend HTTP API to ${toEmail} (ID: ${data.data?.id})`);
+        return { success: true, provider: 'resend', id: data.data?.id, portalUrl };
+      }
+    } catch (resendErr) {
+      console.warn('⚠️ Resend dispatch error:', resendErr.message);
     }
-  } else {
-    console.log(`[Email Simulated] To: ${toEmail} | Link: ${portalUrl}`);
-    return { success: true, simulated: true, portalUrl };
   }
+
+  // 2. Fallback to SMTP
+  const smtp = getSmtpTransporter();
+  if (smtp) {
+    try {
+      const info = await smtp.sendMail({
+        from: smtpFrom,
+        to: toEmail,
+        subject,
+        text,
+        html,
+      });
+      console.log(`✅ Welcome email dispatched via SMTP to ${toEmail} (MessageId: ${info.messageId})`);
+      return { success: true, provider: 'smtp', messageId: info.messageId, portalUrl };
+    } catch (smtpErr) {
+      console.error(`❌ SMTP dispatch failed:`, smtpErr.message);
+      return { success: false, error: smtpErr.message, portalUrl };
+    }
+  }
+
+  console.log(`[Email Simulated] To: ${toEmail} | Link: ${portalUrl}`);
+  return { success: true, simulated: true, portalUrl };
 };
 
 module.exports = {
   sendOwnerWelcomeEmail,
 };
-

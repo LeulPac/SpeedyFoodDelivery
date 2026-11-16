@@ -112,6 +112,7 @@ export default function RegisterBusiness() {
             success: true,
             message: res.data.message || 'Payment verified successfully! Welcome email sent to your inbox.',
             business: res.data.business,
+            portal_url: res.data.portal_url || `https://admin-nu-pied-33.vercel.app/portal/${res.data.business?.portal_code || ''}`,
           });
         })
         .catch((err) => {
@@ -291,10 +292,52 @@ export default function RegisterBusiness() {
                   </div>
                 </div>
 
+                {/* Direct 1-Click Access Card */}
+                {verificationResult.portal_url && (
+                  <div className="p-6 rounded-3xl bg-[var(--bg-card)] border-2 border-[#FF6B00] shadow-xl text-center space-y-4 max-w-lg mx-auto">
+                    <div className="space-y-1">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#FF6B00]/15 text-[#FF6B00]">
+                        Instant Direct Access
+                      </span>
+                      <h3 className="text-lg font-black text-[var(--text-main)]">
+                        Your Dedicated Portal is Ready!
+                      </h3>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        You can open your console directly right now or copy your link:
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-xs text-[var(--text-muted)] break-all font-mono">
+                      {verificationResult.portal_url}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                      <a
+                        href={verificationResult.portal_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-extrabold text-xs shadow-md shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
+                      >
+                        <span>Open {verificationResult.business?.name || 'My'} Console &rarr;</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(verificationResult.portal_url);
+                          alert('Dedicated portal link copied to clipboard!');
+                        }}
+                        className="w-full sm:w-auto px-5 py-3 rounded-xl border border-[var(--border-light)] hover:border-[#FF6B00] text-xs font-bold text-[var(--text-main)] transition"
+                      >
+                        Copy Link
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
                   <Link
                     to="/"
-                    className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs shadow-lg shadow-[#FF6B00]/25 transition flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-8 py-3.5 rounded-2xl border border-[var(--border-light)] bg-[var(--bg-card)] hover:border-[#FF6B00] text-[var(--text-main)] font-bold text-xs transition flex items-center justify-center gap-2"
                   >
                     <span>Return to SpeedyDelivery Home</span>
                     <ArrowRight size={16} weight="bold" />
