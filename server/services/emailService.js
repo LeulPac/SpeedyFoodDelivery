@@ -1,28 +1,80 @@
-const { Resend } = require('resend');
+const { google } = require('googleapis');
 
-let resendClient = null;
+let gmailClient = null;
 
-const getResendClient = () => {
-  if (resendClient) return resendClient;
-  const apiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
-  if (apiKey) {
-    resendClient = new Resend(apiKey);
-    return resendClient;
+const getGmailService = () => {
+  if (gmailClient) return gmailClient;
+
+  const clientId = process.env.GMAIL_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    return null;
   }
-  return null;
+
+  const oauth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
+    'https://developers.google.com/oauthplayground'
+  );
+
+  oauth2Client.setCredentials({
+    refresh_token: refreshToken,
+  });
+
+  gmailClient = google.gmail({ version: 'v1', auth: oauth2Client });
+  return gmailClient;
+};
+
+/**
+ * Encode MIME message into URL-safe base64 string for Gmail API
+ */
+const makeRawMessage = ({ from, to, subject, htmlBody, textBody }) => {
+  const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+  const boundary = `__boundary_${Date.now()}__`;
+
+  const messageParts = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${utf8Subject}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    textBody,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    'Content-Transfer-Encoding: 7bit',
+    '',
+    htmlBody,
+    '',
+    `--${boundary}--`,
+  ];
+
+  const rawMessage = messageParts.join('\r\n');
+  return Buffer.from(rawMessage)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 };
 
 /**
  * Send Welcome Email with Personalized Owner Portal Link
- * Strictly uses Resend HTTP REST API over Port 443.
- * Eliminates legacy SMTP timeouts entirely.
+ * Officially powered by Google Cloud Gmail REST API over HTTPS (Port 443).
+ * Never blocked by Render or cloud host firewalls.
  */
 const sendOwnerWelcomeEmail = async ({ toEmail, ownerName, businessName, portalCode, planName }) => {
   const adminBaseUrl = (process.env.ADMIN_PORTAL_BASE_URL || 'https://admin-nu-pied-33.vercel.app').replace(/\/$/, '');
   const portalUrl = `${adminBaseUrl}/portal/${portalCode}`;
-  
-  // Resend verified domain or default test domain
-  const resendFrom = process.env.RESEND_FROM || 'SpeedyDelivery <onboarding@resend.dev>';
+  const senderEmail = process.env.GMAIL_SENDER_EMAIL || 'luel2905@gmail.com';
+  const fromFormatted = `SpeedyDelivery <${senderEmail}>`;
+
   const subject = `Welcome to SpeedyDelivery! Your Dedicated Owner Portal Link for ${businessName}`;
 
   const html = `
@@ -127,27 +179,27 @@ Use this link to manage your menu, couriers, and live customer orders.
 - The SpeedyDelivery Team
   `;
 
-  const resend = getResendClient();
-  if (resend) {
+  const gmail = getGmailService();
+  if (gmail) {
     try {
-      const data = await resend.emails.send({
-        from: resendFrom,
-        to: [toEmail],
+      const raw = makeRawMessage({
+        from: fromFormatted,
+        to: toEmail,
         subject,
-        text,
-        html,
+        htmlBody: html,
+        textBody: text,
       });
 
-      if (data.error) {
-        console.warn('⚠️ Resend API returned error:', data.error.message || data.error);
-        return { success: false, error: data.error.message || data.error, portalUrl };
-      } else {
-        console.log(`✅ Welcome email dispatched via Resend HTTP API to ${toEmail} (ID: ${data.data?.id})`);
-        return { success: true, provider: 'resend', id: data.data?.id, portalUrl };
-      }
-    } catch (resendErr) {
-      console.warn('⚠️ Resend dispatch error:', resendErr.message);
-      return { success: false, error: resendErr.message, portalUrl };
+      const res = await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: { raw },
+      });
+
+      console.log(`✅ Welcome email dispatched via Google Cloud Gmail API to ${toEmail} (ID: ${res.data.id})`);
+      return { success: true, provider: 'gmail_api', id: res.data.id, portalUrl };
+    } catch (err) {
+      console.error(`❌ Gmail API dispatch error to ${toEmail}:`, err.message);
+      return { success: false, error: err.message, portalUrl };
     }
   }
 
