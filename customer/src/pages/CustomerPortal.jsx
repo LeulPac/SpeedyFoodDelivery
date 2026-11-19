@@ -123,9 +123,16 @@ export default function CustomerPortal() {
   const fetchCategories = async () => {
     try {
       const res = await api.get('/menu/categories');
-      setCategories(res.data || []);
+      if (Array.isArray(res.data)) {
+        setCategories(res.data);
+      } else if (res.data && Array.isArray(res.data.categories)) {
+        setCategories(res.data.categories);
+      } else {
+        setCategories([]);
+      }
     } catch (err) {
       console.error('Failed to load categories:', err);
+      setCategories([]);
     }
   };
 
@@ -1086,7 +1093,7 @@ export default function CustomerPortal() {
 
                 {/* Category Chips */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                  {['All', ...categories].map((cat) => (
+                  {['All', ...(Array.isArray(categories) ? categories : [])].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setActiveCategory(cat)}
