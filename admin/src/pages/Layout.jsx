@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { BUSINESS_CATEGORIES, normalizeBusinessCategory } from '../businessCategories';
 import api from '../api';
 import {
   Package,
@@ -35,6 +36,8 @@ export default function Layout({ children }) {
   };
 
   const isAdmin = user?.role === 'admin';
+  const canonicalBizCategory = normalizeBusinessCategory(user?.business_type);
+  const isFoodBiz = canonicalBizCategory === BUSINESS_CATEGORIES.FOOD;
 
   useEffect(() => {
     if (isAdmin) {
@@ -87,13 +90,13 @@ export default function Layout({ children }) {
         },
         {
           to: '/menu/current',
-          label: 'Menu Management',
+          label: isFoodBiz ? 'Menu Management' : 'Product Catalog',
           icon: List,
         },
         {
           to: '/menu/add',
-          label: 'Add Menu Item',
-          icon: CookingPot,
+          label: isFoodBiz ? 'Add Menu Item' : 'Add Product',
+          icon: isFoodBiz ? CookingPot : Storefront,
         },
         {
           to: '/drivers',

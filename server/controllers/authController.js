@@ -29,6 +29,7 @@ const publicUser = (row) => ({
   phone: row.phone || null,
   role: row.role,
   business_id: row.business_id || null,
+  business_type: row.business_type || null,
 });
 
 const register = async (req, res) => {
@@ -127,11 +128,19 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
-    if (user.role === 'owner' && !user.business_id) {
-      const bizRes = await db.query('SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
-      if (bizRes.rows.length > 0) {
-        user.business_id = bizRes.rows[0].id;
-        await db.query('UPDATE users SET business_id = $1 WHERE id = $2', [user.business_id, user.id]);
+    if (user.role === 'owner') {
+      if (!user.business_id) {
+        const bizRes = await db.query('SELECT id, business_type FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
+        if (bizRes.rows.length > 0) {
+          user.business_id = bizRes.rows[0].id;
+          user.business_type = bizRes.rows[0].business_type;
+          await db.query('UPDATE users SET business_id = $1 WHERE id = $2', [user.business_id, user.id]);
+        }
+      } else {
+        const bizRes = await db.query('SELECT business_type FROM businesses WHERE id = $1', [user.business_id]);
+        if (bizRes.rows.length > 0) {
+          user.business_type = bizRes.rows[0].business_type;
+        }
       }
     }
 
@@ -311,10 +320,18 @@ const me = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     const user = userResult.rows[0];
-    if (user.role === 'owner' && !user.business_id) {
-      const bizRes = await db.query('SELECT id FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
-      if (bizRes.rows.length > 0) {
-        user.business_id = bizRes.rows[0].id;
+    if (user.role === 'owner') {
+      if (!user.business_id) {
+        const bizRes = await db.query('SELECT id, business_type FROM businesses WHERE owner_id = $1 LIMIT 1', [user.id]);
+        if (bizRes.rows.length > 0) {
+          user.business_id = bizRes.rows[0].id;
+          user.business_type = bizRes.rows[0].business_type;
+        }
+      } else {
+        const bizRes = await db.query('SELECT business_type FROM businesses WHERE id = $1', [user.business_id]);
+        if (bizRes.rows.length > 0) {
+          user.business_type = bizRes.rows[0].business_type;
+        }
       }
     }
     res.json(publicUser(user));

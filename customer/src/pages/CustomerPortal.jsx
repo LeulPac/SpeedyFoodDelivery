@@ -6,6 +6,11 @@ import { useModal } from '../context/ModalContext';
 import api, { resolveAssetUrl } from '../api';
 import Footer from '../components/Footer';
 import {
+  BUSINESS_CATEGORIES,
+  BUSINESS_CATEGORY_LIST,
+  normalizeBusinessCategory
+} from '../businessCategories';
+import {
   ShoppingCart,
   SignOut,
   SignIn,
@@ -416,7 +421,8 @@ export default function CustomerPortal() {
 
   // Filtered businesses
   const filteredBusinesses = businesses.filter((b) => {
-    const matchType = businessTypeFilter === 'All' || b.business_type === businessTypeFilter;
+    const businessCat = normalizeBusinessCategory(b.business_type);
+    const matchType = businessTypeFilter === 'All' || businessCat === businessTypeFilter || b.business_type === businessTypeFilter;
     const matchSearch =
       !searchQuery ||
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -428,10 +434,12 @@ export default function CustomerPortal() {
   // Filtered menu items
   const filteredMenu = menu.filter((item) => {
     const matchCategory = activeCategory === 'All' || item.category === activeCategory;
+    const itemBrand = item.brand || item.attributes?.brand || '';
     const matchSearch =
       !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      itemBrand.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });
 
@@ -955,32 +963,37 @@ export default function CustomerPortal() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-lg sm:text-2xl font-black text-[var(--text-main)] tracking-tight">
-                      Explore Food Businesses
+                      Explore Local Businesses & Stores
                     </h2>
                     <p className="text-sm text-[var(--text-muted)]">
-                      Order from certified local restaurants, coffee roasters, and culinary hotels
+                      Order food, groceries, electronics, fashion, and beauty products from top merchants
                     </p>
                   </div>
 
-                  {/* Filter by Type */}
+                  {/* Filter by Category */}
                   <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {['All', 'Restaurant', 'Cafe', 'Hotel'].map((type) => (
+                    <button
+                      onClick={() => setBusinessTypeFilter('All')}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                        businessTypeFilter === 'All'
+                          ? 'bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
+                          : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[#FF6B00]/40'
+                      }`}
+                    >
+                      🌟 All Stores
+                    </button>
+                    {BUSINESS_CATEGORY_LIST.map((cat) => (
                       <button
-                        key={type}
-                        onClick={() => setBusinessTypeFilter(type)}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-                          businessTypeFilter === type
+                        key={cat.id}
+                        onClick={() => setBusinessTypeFilter(cat.id)}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
+                          businessTypeFilter === cat.id
                             ? 'bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
                             : 'bg-[var(--bg-card)] border border-[var(--border-light)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:border-[#FF6B00]/40'
                         }`}
                       >
-                        {type === 'All'
-                          ? 'All Partners'
-                          : type === 'Restaurant'
-                          ? '🍴 Restaurants'
-                          : type === 'Cafe'
-                          ? '☕ Cafes & Bakery'
-                          : '🏨 Hotel Dining'}
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
                       </button>
                     ))}
                   </div>
@@ -1110,13 +1123,16 @@ export default function CustomerPortal() {
                   {filteredMenu.map((item) => {
                     const cartItem = cart.find((i) => i.id === item.id);
                     const qtyInCart = cartItem ? cartItem.quantity : 0;
+                    const attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
+                    const brand = item.brand || attrs.brand;
+                    const stock = item.stock_quantity !== null && item.stock_quantity !== undefined ? item.stock_quantity : attrs.stock_quantity;
 
                     return (
                       <div
                         key={item.id}
                         className="group rounded-3xl bg-[var(--bg-card)] border border-[var(--border-light)] overflow-hidden shadow-sm hover:shadow-xl hover:border-[#FF6B00]/30 transition duration-300 flex flex-col justify-between"
                       >
-                        {/* Food Image */}
+                        {/* Food / Product Image */}
                         <div className="h-44 w-full relative overflow-hidden bg-slate-900">
                           <img
                             src={
@@ -1138,14 +1154,53 @@ export default function CustomerPortal() {
                         </div>
 
                         {/* Details & Actions */}
-                        <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                          <div className="space-y-1">
+                        <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                          <div className="space-y-1.5">
+                            {brand && (
+                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF6B00] bg-[#FF6B00]/10 px-2 py-0.5 rounded-md inline-block">
+                                {brand}
+                              </span>
+                            )}
                             <h3 className="font-black text-base text-[var(--text-main)] group-hover:text-[#FF6B00] transition">
                               {item.name}
                             </h3>
                             <p className="text-xs text-[var(--text-muted)] line-clamp-2 leading-relaxed">
-                              {item.description || 'Delicious meal prepared with fresh local ingredients.'}
+                              {item.description || 'Quality product prepared for instant delivery.'}
                             </p>
+
+                            {/* Attribute Highlights (Sizes, Unit, Warranty, Ingredients, Prep time) */}
+                            <div className="flex flex-wrap gap-1 pt-1">
+                              {attrs.preparation_time && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-[var(--text-muted)]">
+                                  ⏱ {attrs.preparation_time}
+                                </span>
+                              )}
+                              {attrs.unit && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-[var(--text-muted)]">
+                                  Unit: {attrs.unit}
+                                </span>
+                              )}
+                              {Array.isArray(attrs.sizes) && attrs.sizes.length > 0 && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-[var(--text-muted)]">
+                                  Sizes: {attrs.sizes.slice(0, 3).join(', ')}{attrs.sizes.length > 3 ? '...' : ''}
+                                </span>
+                              )}
+                              {attrs.warranty && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-[var(--text-muted)]">
+                                  🛡️ {attrs.warranty}
+                                </span>
+                              )}
+                              {attrs.size_or_volume && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-[var(--text-muted)]">
+                                  {attrs.size_or_volume}
+                                </span>
+                              )}
+                              {stock !== undefined && stock !== null && stock !== '' && (
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--bg-page)] border border-[var(--border-light)] text-[10px] font-bold text-emerald-600">
+                                  In Stock: {stock}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           <div className="pt-3 border-t border-[var(--border-light)] flex items-center justify-between">

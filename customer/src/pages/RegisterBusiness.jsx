@@ -38,7 +38,7 @@ export default function RegisterBusiness() {
   // Form inputs
   const [form, setForm] = useState({
     business_name: '',
-    business_type: 'Restaurant',
+    business_type: 'Food & Restaurants',
     owner_name: '',
     email: '',
     password: '',
@@ -457,16 +457,18 @@ export default function RegisterBusiness() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-[var(--text-main)]">Business Type *</label>
+                      <label className="text-xs font-bold text-[var(--text-main)]">Business Category *</label>
                       <select
                         value={form.business_type}
                         onChange={(e) => setForm({ ...form, business_type: e.target.value })}
                         className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-[var(--bg-page)] border border-[var(--border-light)] text-[var(--text-main)] focus:outline-none focus:border-[#FF6B00]"
                       >
-                        <option value="Restaurant">🍴 Restaurant</option>
-                        <option value="Cafe">☕ Cafe & Bakery</option>
-                        <option value="Hotel">🏨 Hotel Dining</option>
-                        <option value="Fast Food">🍔 Fast Food / Snack Bar</option>
+                        <option value="Food & Restaurants">🍽️ Food & Restaurants</option>
+                        <option value="Grocery & Supermarkets">🛒 Grocery & Supermarkets</option>
+                        <option value="Clothing & Shoes">👕 Clothing & Shoes</option>
+                        <option value="Electronics & Accessories">📱 Electronics & Accessories</option>
+                        <option value="Cosmetics & Beauty">💄 Cosmetics & Beauty</option>
+                        <option value="Other Retail Businesses">🛍️ Other Retail Businesses</option>
                       </select>
                     </div>
                   </div>

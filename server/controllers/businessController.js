@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { sendOwnerWelcomeEmail } = require('../services/emailService');
 const { uploadImageBuffer } = require('../services/uploadService');
+const { BUSINESS_CATEGORIES, normalizeBusinessCategory } = require('../businessCategories');
 const db = require('../db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -51,8 +52,15 @@ const getBusinesses = async (req, res) => {
     const params = [];
 
     if (type && type !== 'All') {
-      params.push(type);
-      query += ` AND b.business_type = $${params.length}`;
+      const canonicalType = normalizeBusinessCategory(type);
+      if (canonicalType === BUSINESS_CATEGORIES.FOOD) {
+        // Also match legacy types like 'Restaurant', 'Cafe', 'Hotel', 'Fast Food'
+        query += ` AND (b.business_type = $${params.length + 1} OR b.business_type IN ('Restaurant', 'Cafe', 'Hotel', 'Fast Food'))`;
+        params.push(canonicalType);
+      } else {
+        params.push(canonicalType);
+        query += ` AND b.business_type = $${params.length}`;
+      }
     }
 
     if (search) {
@@ -272,7 +280,7 @@ const registerBusiness = async (req, res) => {
       [
         user.id,
         String(business_name).trim(),
-        business_type || 'Restaurant',
+        normalizeBusinessCategory(business_type),
         String(owner_name).trim(),
         trimmedEmail,
         phone ? String(phone).trim() : null,
